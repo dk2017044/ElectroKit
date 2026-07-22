@@ -11,13 +11,8 @@ object SupportIntentHelper {
 
     private const val SUPPORT_EMAIL = "dk2017044@hotmail.com"
     const val GOOGLE_FORM_URL = "https://forms.gle/CXRwfpFUvrZUpjTj8"
-    const val UPDATE_DRIVE_URL = "https://drive.google.com/drive/folders/1XP_pAGkSNf9SPz0c9-PcJGX5aX1W9_cM?usp=sharing"
     const val INSTAGRAM_URL = "https://instagram.com/di7xu"
     const val YOUTUBE_URL = "https://youtube.com/@m.dilip07"
-
-    fun checkForUpdates(context: Context, onError: (String) -> Unit = {}) {
-        openBrowserUrl(context, UPDATE_DRIVE_URL, onError)
-    }
 
     fun openInstagram(context: Context, onError: (String) -> Unit = {}) {
         openBrowserUrl(context, INSTAGRAM_URL, onError)

@@ -8,15 +8,115 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.example.electrokit.domain.utils.UpdateInfo
+import com.example.electrokit.domain.utils.UpdateManager
+
 class SupportViewModel : ViewModel() {
 
     private val _snackbarEvent = MutableSharedFlow<String>()
     val snackbarEvent: SharedFlow<String> = _snackbarEvent.asSharedFlow()
 
+    var isCheckingForUpdates by mutableStateOf(false)
+        private set
+
+    var latestUpdateInfo by mutableStateOf<UpdateInfo?>(null)
+        private set
+
+    var updateError by mutableStateOf<String?>(null)
+        private set
+
+    var isDownloading by mutableStateOf(false)
+        private set
+
+    var downloadProgress by mutableStateOf(0f)
+        private set
+
+    var isFetchingAllReleases by mutableStateOf(false)
+        private set
+
+    var allReleases by mutableStateOf<List<UpdateInfo>>(emptyList())
+        private set
+
+    private var activeDownloadId = -1L
+
     fun checkForUpdates(context: Context) {
-        SupportIntentHelper.checkForUpdates(context) { errorMessage ->
-            showSnackbar(errorMessage)
+        isCheckingForUpdates = true
+        latestUpdateInfo = null
+        updateError = null
+
+        UpdateManager.checkForUpdates(context) { result ->
+            isCheckingForUpdates = false
+            result.fold(
+                onSuccess = { info ->
+                    latestUpdateInfo = info
+                    if (!info.isNewer) {
+                        showSnackbar("Your app is already up to date! (v${info.latestVersion})")
+                    }
+                },
+                onFailure = { error ->
+                    updateError = error.message
+                    showSnackbar(error.message ?: "Failed to check for updates.")
+                }
+            )
         }
+    }
+
+    fun fetchAllReleases(context: Context) {
+        isFetchingAllReleases = true
+        UpdateManager.fetchAllReleases(context) { result ->
+            isFetchingAllReleases = false
+            result.fold(
+                onSuccess = { list ->
+                    allReleases = list
+                },
+                onFailure = { error ->
+                    showSnackbar(error.message ?: "Failed to fetch version history.")
+                }
+            )
+        }
+    }
+
+    fun startDownload(context: Context, downloadUrl: String, version: String, releaseNotes: String) {
+        if (isDownloading) {
+            showSnackbar("A download is already in progress.")
+            return
+        }
+        isDownloading = true
+        downloadProgress = 0f
+        activeDownloadId = UpdateManager.startDownload(
+            context = context,
+            downloadUrl = downloadUrl,
+            latestVersion = version,
+            releaseNotes = releaseNotes,
+            onProgress = { progress ->
+                downloadProgress = progress
+            },
+            onState = { stateMsg ->
+                showSnackbar(stateMsg)
+                if (stateMsg.contains("Installing") || stateMsg.contains("failed") || stateMsg.contains("failed or was canceled") || stateMsg.contains("WARNING") || stateMsg.contains("verification failed")) {
+                    isDownloading = false
+                    downloadProgress = 0f
+                }
+            }
+        )
+    }
+
+    fun startDownload(context: Context) {
+        val info = latestUpdateInfo ?: return
+        startDownload(context, info.downloadUrl, info.latestVersion, info.releaseNotes)
+        latestUpdateInfo = null
+    }
+
+    fun clearUpdateState() {
+        latestUpdateInfo = null
+        updateError = null
+    }
+
+    fun clearAllReleases() {
+        allReleases = emptyList()
     }
 
     fun openInstagram(context: Context) {

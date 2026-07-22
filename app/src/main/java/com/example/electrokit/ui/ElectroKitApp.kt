@@ -35,6 +35,7 @@ import com.example.electrokit.ui.screens.*
 import com.example.electrokit.ui.screens.components.ComponentDetailScreen
 import com.example.electrokit.ui.screens.components.ComponentListScreen
 import com.example.electrokit.ui.theme.ElectroKitTheme
+import com.example.electrokit.domain.utils.UpdateManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -42,6 +43,7 @@ import kotlinx.coroutines.launch
 fun ElectroKitApp() {
     val context = LocalContext.current
     val themePrefs = remember(context) { context.getSharedPreferences("electrokit_theme_prefs", Context.MODE_PRIVATE) }
+    val appPrefs = remember(context) { context.getSharedPreferences("electrokit_app_prefs", Context.MODE_PRIVATE) }
     var isDarkTheme by remember { mutableStateOf(themePrefs.getBoolean("is_dark_theme", false)) }
     var currentScreen by remember { mutableStateOf("splash") }
     var selectedComponent by remember { mutableStateOf<ComponentEntity?>(null) }
@@ -53,13 +55,99 @@ fun ElectroKitApp() {
     // Quit confirmation double tap timestamp
     var lastBackPressTime by remember { mutableStateOf(0L) }
 
-    // Splash Timer (2 Seconds)
+    // Splash Timer (2 Seconds) + Silent Update check once a week
     LaunchedEffect(Unit) {
         delay(2000)
         currentScreen = "main"
+
+        val lastCheckTime = appPrefs.getLong("last_update_check_time", 0L)
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastCheckTime > 604800000L) { // 7 days
+            UpdateManager.checkForUpdates(context) { result ->
+                result.onSuccess { info ->
+                    if (info.isNewer) {
+                        UpdateManager.showUpdateNotification(context, info.latestVersion)
+                    }
+                    appPrefs.edit().putLong("last_update_check_time", currentTime).apply()
+                }
+            }
+        }
+    }
+
+    var showWhatsNewDialog by remember {
+        val currentVersionCode = try {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionCode
+        } catch (e: Exception) {
+            0
+        }
+        val lastVersionCode = appPrefs.getInt("last_version_code", -1)
+        val isFirstLaunchAfterUpdate = lastVersionCode != -1 && currentVersionCode > lastVersionCode
+        
+        // Save current version code so we don't show the dialog again
+        appPrefs.edit().putInt("last_version_code", currentVersionCode).apply()
+        
+        mutableStateOf(isFirstLaunchAfterUpdate)
     }
 
     ElectroKitTheme(darkTheme = isDarkTheme) {
+        if (showWhatsNewDialog) {
+            AlertDialog(
+                onDismissRequest = { showWhatsNewDialog = false },
+                title = {
+                    Text(
+                        text = "Welcome to ElectroKit v2.0.2! 🎉",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = Color(0xFF2563EB)
+                    )
+                },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "What's New in this Version:",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        
+                        val bulletPoints = listOf(
+                            "Theme Persistence: Light and Dark theme selections are now automatically saved and restored on app launch.",
+                            "Automated GitHub Updates: Check for updates securely directly from GitHub Releases, with background downloading and automatic install prompting.",
+                            "Gradle Archiving Architected: Separated debug and release build tasks to automatically compile and copy versioned release binaries."
+                        )
+                        
+                        bulletPoints.forEach { point ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text("•", fontWeight = FontWeight.Bold, color = Color(0xFF2563EB))
+                                Text(
+                                    text = point,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = { showWhatsNewDialog = false },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
+                    ) {
+                        Text("Got it!", color = Color.White)
+                    }
+                },
+                shape = RoundedCornerShape(20.dp),
+                containerColor = MaterialTheme.colorScheme.surface
+            )
+        }
+
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background

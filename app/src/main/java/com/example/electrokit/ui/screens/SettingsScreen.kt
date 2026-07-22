@@ -6,6 +6,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -198,7 +200,148 @@ fun SettingsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .shadow(2.dp, RoundedCornerShape(20.dp), ambientColor = Color.LightGray.copy(alpha = 0.15f), spotColor = Color.LightGray.copy(alpha = 0.15f))
-                            .clickable { viewModel.checkForUpdates(context) }
+                            .clickable { if (!viewModel.isCheckingForUpdates && !viewModel.isDownloading) viewModel.checkForUpdates(context) }
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Surface(
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = Color(0xFF2563EB).copy(alpha = 0.08f),
+                                        modifier = Modifier.size(42.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                imageVector = Icons.Default.SystemUpdate,
+                                                contentDescription = "Check for Updates",
+                                                tint = Color(0xFF2563EB),
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                text = "Check for Updates",
+                                                fontSize = 15.sp,
+                                                fontWeight = FontWeight.Medium, // Poppins Medium
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Surface(
+                                                shape = RoundedCornerShape(6.dp),
+                                                color = Color(0xFF2563EB).copy(alpha = 0.12f)
+                                            ) {
+                                                Text(
+                                                    text = "v2.0.2",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color(0xFF2563EB),
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                )
+                                            }
+                                        }
+                                        Text(
+                                            text = "Get the latest features and bug fixes directly from GitHub.",
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                                            modifier = Modifier.padding(top = 2.dp)
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                FilledTonalButton(
+                                    onClick = { if (!viewModel.isCheckingForUpdates && !viewModel.isDownloading) viewModel.checkForUpdates(context) },
+                                    enabled = !viewModel.isCheckingForUpdates && !viewModel.isDownloading,
+                                    colors = ButtonDefaults.filledTonalButtonColors(
+                                        containerColor = Color(0xFF2563EB).copy(alpha = 0.1f),
+                                        contentColor = Color(0xFF2563EB)
+                                    ),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    if (viewModel.isCheckingForUpdates) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(14.dp),
+                                            color = Color(0xFF2563EB),
+                                            strokeWidth = 2.dp
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text("Checking...", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    } else {
+                                        Text("Check Now", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                            if (viewModel.isDownloading) {
+                                Spacer(modifier = Modifier.height(14.dp))
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Downloading Update...",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = Color(0xFF2563EB)
+                                        )
+                                        Text(
+                                            text = "${(viewModel.downloadProgress * 100).toInt()}%",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF2563EB)
+                                        )
+                                    }
+                                    LinearProgressIndicator(
+                                        progress = viewModel.downloadProgress,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(6.dp)
+                                            .clip(RoundedCornerShape(3.dp)),
+                                        color = Color(0xFF2563EB),
+                                        trackColor = Color(0xFF2563EB).copy(alpha = 0.15f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 4.5. Rollback & Version History Card
+                item {
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(2.dp, RoundedCornerShape(20.dp), ambientColor = Color.LightGray.copy(alpha = 0.15f), spotColor = Color.LightGray.copy(alpha = 0.15f))
+                            .clickable { if (!viewModel.isFetchingAllReleases) viewModel.fetchAllReleases(context) }
                     ) {
                         Row(
                             modifier = Modifier
@@ -218,8 +361,8 @@ fun SettingsScreen(
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(
-                                            imageVector = Icons.Default.SystemUpdate,
-                                            contentDescription = "Check for Updates",
+                                            imageVector = Icons.Default.History,
+                                            contentDescription = "Version History",
                                             tint = Color(0xFF2563EB),
                                             modifier = Modifier.size(22.dp)
                                         )
@@ -227,29 +370,14 @@ fun SettingsScreen(
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = "Check for Updates",
-                                            fontSize = 15.sp,
-                                            fontWeight = FontWeight.Medium, // Poppins Medium
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Surface(
-                                            shape = RoundedCornerShape(6.dp),
-                                            color = Color(0xFF2563EB).copy(alpha = 0.12f)
-                                        ) {
-                                            Text(
-                                                text = "v2.0.2",
-                                                fontSize = 10.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color(0xFF2563EB),
-                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                            )
-                                        }
-                                    }
                                     Text(
-                                        text = "If a newer APK is available in Drive, download manually.",
+                                        text = "Version History / Rollback",
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = "Downgrade or install older releases of the app directly from GitHub.",
                                         fontSize = 11.sp,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                                         modifier = Modifier.padding(top = 2.dp)
@@ -257,23 +385,18 @@ fun SettingsScreen(
                                 }
                             }
 
-                            Spacer(modifier = Modifier.width(8.dp))
-
-                            FilledTonalButton(
-                                onClick = { viewModel.checkForUpdates(context) },
-                                colors = ButtonDefaults.filledTonalButtonColors(
-                                    containerColor = Color(0xFF2563EB).copy(alpha = 0.1f),
-                                    contentColor = Color(0xFF2563EB)
-                                ),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Text("Check Now", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                Spacer(modifier = Modifier.width(4.dp))
+                            if (viewModel.isFetchingAllReleases) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = Color(0xFF2563EB),
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                     contentDescription = null,
-                                    modifier = Modifier.size(14.dp)
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                                    modifier = Modifier.size(16.dp)
                                 )
                             }
                         }
@@ -528,6 +651,160 @@ fun SettingsScreen(
                 }
             }
         }
+    }
+
+    val latestUpdate = viewModel.latestUpdateInfo
+    if (latestUpdate != null && latestUpdate.isNewer) {
+        AlertDialog(
+            onDismissRequest = { viewModel.clearUpdateState() },
+            title = {
+                Text(
+                    text = "New Update Available! 🚀",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Version: ${latestUpdate.latestVersion}",
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF2563EB),
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "What's New:",
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 180.dp)
+                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(8.dp)),
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ) {
+                        Box(modifier = Modifier.padding(10.dp).verticalScroll(rememberScrollState())) {
+                            Text(
+                                text = latestUpdate.releaseNotes,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.startDownload(context)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
+                ) {
+                    Text("Update Now", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { viewModel.clearUpdateState() }
+                ) {
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                }
+            },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    }
+
+    val allReleases = viewModel.allReleases
+    if (allReleases.isNotEmpty()) {
+        AlertDialog(
+            onDismissRequest = { viewModel.clearAllReleases() },
+            title = {
+                Text(
+                    text = "Version History & Rollback 🔄",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
+            text = {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 320.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(allReleases.size) { index ->
+                        val release = allReleases[index]
+                        Card(
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = release.latestVersion,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF2563EB),
+                                        fontSize = 14.sp
+                                    )
+                                    
+                                    Button(
+                                        onClick = {
+                                            viewModel.startDownload(context, release.downloadUrl, release.latestVersion, release.releaseNotes)
+                                            viewModel.clearAllReleases()
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB)),
+                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier.height(28.dp)
+                                    ) {
+                                        Text("Download", fontSize = 10.sp, color = Color.White)
+                                    }
+                                }
+                                
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = release.releaseNotes,
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                    maxLines = 3,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(
+                    onClick = { viewModel.clearAllReleases() }
+                ) {
+                    Text("Close", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                }
+            },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     }
 }
 
