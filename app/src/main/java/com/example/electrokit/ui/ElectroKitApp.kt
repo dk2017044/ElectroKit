@@ -36,6 +36,7 @@ import com.example.electrokit.ui.screens.components.ComponentDetailScreen
 import com.example.electrokit.ui.screens.components.ComponentListScreen
 import com.example.electrokit.ui.theme.ElectroKitTheme
 import com.example.electrokit.domain.utils.UpdateManager
+import com.example.electrokit.domain.utils.DeviceInfoHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -95,7 +96,7 @@ fun ElectroKitApp() {
                 onDismissRequest = { showWhatsNewDialog = false },
                 title = {
                     Text(
-                        text = "Welcome to ElectroKit v2.0.2! 🎉",
+                        text = "Welcome to ElectroKit v${DeviceInfoHelper.getAppVersion(context)}! 🎉",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         color = Color(0xFF2563EB)

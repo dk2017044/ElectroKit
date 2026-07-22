@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.electrokit.R
+import com.example.electrokit.domain.utils.DeviceInfoHelper
 import com.example.electrokit.ui.components.PcbBackground
 import com.example.electrokit.ui.screens.support.InfoDetailRow
 import com.example.electrokit.ui.screens.support.SupportOptionCard
@@ -245,7 +246,7 @@ fun SettingsScreen(
                                                 color = Color(0xFF2563EB).copy(alpha = 0.12f)
                                             ) {
                                                 Text(
-                                                    text = "v2.0.2",
+                                                    text = "v${DeviceInfoHelper.getAppVersion(context)}",
                                                     fontSize = 10.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = Color(0xFF2563EB),
@@ -517,7 +518,7 @@ fun SettingsScreen(
                                         color = Color(0xFF2563EB).copy(alpha = 0.12f)
                                     ) {
                                         Text(
-                                            text = "v2.0.2",
+                                            text = "v${DeviceInfoHelper.getAppVersion(context)}",
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             color = Color(0xFF2563EB),

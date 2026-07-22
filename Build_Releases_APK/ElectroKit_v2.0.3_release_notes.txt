@@ -1,0 +1,5 @@
+ElectroKit v2.0.3 Release Notes
+- Automated GitHub updates check & custom version rollback dialog.
+- Live progress bar + percentage display during download.
+- SHA-256 integrity verification security check.
+- Weekly background silent update check via system notifications.

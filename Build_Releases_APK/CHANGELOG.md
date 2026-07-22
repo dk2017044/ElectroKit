@@ -2,7 +2,17 @@
 
 ---
 
-## Version 2.0.2 (Build Code: 11) — Current Release
+## Version 2.0.3 (Build Code: 12) — Current Release
+- **Release Date**: 2026-07-23
+- **What's New**:
+  - **Automated GitHub Updates & Rollbacks**: Fully integrated background updates check and version history dialog to install older stable releases directly from GitHub.
+  - **Dynamic Progress Updates**: Beautiful visual progress bar and live percentage indicator during background APK downloads.
+  - **SHA-256 Checksum Security**: Enforces file integrity validation by verifying calculated hash checksums against release descriptions before prompting installations.
+  - **Silent Notifications**: Weekly background update checker silently alerts the user via Android system notifications if a new release is detected.
+
+---
+
+## Version 2.0.2 (Build Code: 11)
 - **Release Date**: 2026-07-23
 - **What's New**:
   - **Theme Persistence**: Light and Dark theme mode choices are now stored in `SharedPreferences`, restoring the user's preferred visual style automatically across app launches.
