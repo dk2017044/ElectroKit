@@ -1,0 +1,5 @@
+ElectroKit Version 1.0.0 Release Notes:
+- Initial release of ElectroKit Offline Electronics Toolkit.
+- Included 6 core calculators: Ohm's Law, LED Resistor, Resistor Color Code, SMD Code, Series/Parallel Math, Number System Converter.
+- Offline 289 Component JSON dataset loaded into native SQLite database.
+- 16-section Component Detail Screen.

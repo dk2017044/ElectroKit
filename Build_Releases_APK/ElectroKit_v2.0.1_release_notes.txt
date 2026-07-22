@@ -1,0 +1,3 @@
+ElectroKit Version 2.0.1 Release Notes:
+- Home Screen Kivy Framework Simulation Layout: Added the premium Kivy design files and layout simulator electrokit_gui.py in root workspace folder.
+- Integrated animations including Processor Circuit Flow, Gradient Outline rotating glow search bar, and 6 modular grid card layout animators matching Kivy GUI specifications.

@@ -1,0 +1,3 @@
+ElectroKit Version 2.0.2 Release Notes:
+- Theme Persistence: Light and Dark theme mode preferences are now stored in SharedPreferences, automatically restoring your theme across app restarts.
+- Gradle Archiving Configuration: Updated build tasks to properly copy production release APKs to the Build_Releases_APK/ folder when assembleRelease is run.

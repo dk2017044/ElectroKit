@@ -1,0 +1,3 @@
+ElectroKit Version 1.0.6 Release Notes:
+- Database Merge: Extracted 111 new components from the custom uploaded text database file and integrated them into the app's components database assets.
+- Total unique component assets bumped from 289 to 400.

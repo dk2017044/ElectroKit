@@ -1,0 +1,6 @@
+ElectroKit Version 1.0.1 Release Notes:
+- Added Developer Profile Picture (profile.png) to Developer Info card.
+- Updated APK sharing mechanism to share clean named 'ElectroKit_v1.0.1.apk' file via FileProvider.
+- Fixed splash screen back navigation exit bug.
+- Converted Room database layer to native crash-free SQLiteOpenHelper.
+- Set targetSdk=34 for Samsung Android 12+ OS compatibility.

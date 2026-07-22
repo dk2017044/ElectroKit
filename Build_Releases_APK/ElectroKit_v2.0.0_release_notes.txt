@@ -1,0 +1,8 @@
+ElectroKit Version 2.0.0 (Major Release) Release Notes:
+- Interactive Engineering Animations: Added rich, responsive animations to all core calculator & reference screens:
+  1. Ohm's Law Screen: Current flow animation showing blue/white glowing paths on calculation trigger.
+  2. LED Resistor Screen: Dynamic breathing LED bulb animation in yellow/green.
+  3. Resistor Color Screen: Shimmer glow highlighting resistor bands briefly on color dropdown changes.
+  4. Series/Parallel Screen: Dotted/glowing flow animation moving along a circuit diagram showing parallel branch current splits.
+  5. Number System Converter Screen: Digits transition smoothly with slide-fade animation on conversion.
+  6. Component Details Screen: Dynamic Interactive Datasheet Explorer with magnifying glass zoom-in/out animation on interaction.

@@ -1,0 +1,5 @@
+ElectroKit Version 1.0.5 Release Notes:
+- Removed '289' component count subtitle from the Components DB card on the Home screen to declutter card design.
+- Removed 'References' category chip from the category chips row on the Home screen as requested.
+- Solved layout overlapping with the system status bar on several devices by adding statusBarsPadding to the outermost Column of the Home screen.
+- Rewrote the Ohm's Law Calculator to use Scaffold and TopAppBar, ensuring proper status bar and window insets handling across all devices.

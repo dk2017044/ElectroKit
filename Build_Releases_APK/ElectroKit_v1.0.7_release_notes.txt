@@ -1,0 +1,3 @@
+ElectroKit Version 1.0.7 Release Notes:
+- Fixed Component Library Search back behavior: Pressing back button (system back or TopAppBar back) now clears an active search query first, returning the list to normal state, rather than closing the screen or app.
+- Added a Clear icon inside the Search bar that appears only when text is entered, enabling fast one-click search clearing.

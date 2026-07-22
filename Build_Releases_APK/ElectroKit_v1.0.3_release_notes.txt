@@ -1,0 +1,6 @@
+ElectroKit Version 1.0.3 Release Notes:
+- Replaced default Android robot icon with custom premium ElectroKit App Icon.
+- Logo Design: Slate dark background (#0F172A), Hexagon frame with Electric Blue (#2563EB) & Cyan (#00E5FF) PCB circuit traces forming letter 'E', with Amber lightning bolt (⚡).
+- Generated launcher icons across all Android density buckets (mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi) and Adaptive Icons (ic_launcher.xml, ic_launcher_background.xml, ic_launcher_foreground.xml).
+- Updated Splash Screen with smooth animated 512x512 logo.
+- Auto-archived to Build_Releases_APK/ElectroKit_v1.0.3.apk.

@@ -1,0 +1,5 @@
+ElectroKit Version 1.0.2 Release Notes:
+- Redesigned 'Check for Updates' Material Design 3 card with compact layout and 'Check Now' button.
+- Added clickable Instagram (@di7xu) and YouTube (@m.dilip07) social media buttons beside developer name (Dilip Kumar).
+- Automated Gradle build task 'archiveVersionedApk' to auto-save versioned APKs to Build_Releases_APK/.
+- Fixed share filename to 'ElectroKit_v1.0.2.apk'.

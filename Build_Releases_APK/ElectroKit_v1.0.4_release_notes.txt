@@ -1,0 +1,9 @@
+ElectroKit Version 1.0.4 Release Notes:
+- Back button quit confirmation added: Prevents accidental app exits by showing a confirmation dialog when pressing back on the Home screen.
+- Home screen search integration: Tapping search on the Home page search bar now directly navigates to the Components tab and executes the search query.
+- Saved last search: The Component library now retains and displays the user's last search query and results across tab switches.
+- Removed component count: Deleted the total component count from the Component library header to declutter the user interface.
+- Lazy scroll pagination: Optimized the Component library list to render 20 components initially and load more on demand as the user scrolls, boosting performance.
+- Component Favoriting: Added the ability to save favorite components (Heart icon in details view) and display them in a new dedicated section on the Favorites screen.
+- Social media icon overhaul: Redesigned the Instagram and YouTube buttons inside settings with high-fidelity, custom-drawn vectors using Compose Canvas.
+- Ohm's Law Calculator locking: Added target parameter selector (Voltage, Current, Resistance) that properly locks and auto-calculates the target value, preventing incorrect editing of all 3 values simultaneously.
