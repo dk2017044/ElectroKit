@@ -28,6 +28,14 @@ class SupportViewModel : ViewModel() {
     var updateError by mutableStateOf<String?>(null)
         private set
 
+    var showUpToDateDialog by mutableStateOf(false)
+    
+    var upToDateVersion by mutableStateOf("")
+
+    var showErrorDialog by mutableStateOf(false)
+    
+    var errorDialogMsg by mutableStateOf("")
+
     var isDownloading by mutableStateOf(false)
         private set
 
@@ -46,19 +54,28 @@ class SupportViewModel : ViewModel() {
         isCheckingForUpdates = true
         latestUpdateInfo = null
         updateError = null
+        showUpToDateDialog = false
+        showErrorDialog = false
 
         UpdateManager.checkForUpdates(context) { result ->
             isCheckingForUpdates = false
             result.fold(
                 onSuccess = { info ->
-                    latestUpdateInfo = info
-                    if (!info.isNewer) {
-                        showSnackbar("Your app is already up to date! (v${info.latestVersion})")
+                    if (info.isNewer) {
+                        latestUpdateInfo = info
+                    } else {
+                        upToDateVersion = info.latestVersion
+                        showUpToDateDialog = true
                     }
                 },
                 onFailure = { error ->
                     updateError = error.message
-                    showSnackbar(error.message ?: "Failed to check for updates.")
+                    errorDialogMsg = if (error is java.net.UnknownHostException || error.message?.contains("Unable to resolve host") == true) {
+                        "No internet connection. Please check your network settings and try again."
+                    } else {
+                        error.message ?: "Unable to contact update server. Please try again later."
+                    }
+                    showErrorDialog = true
                 }
             )
         }

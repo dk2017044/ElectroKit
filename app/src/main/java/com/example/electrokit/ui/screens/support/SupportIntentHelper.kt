@@ -78,70 +78,39 @@ object SupportIntentHelper {
         }
     }
 
-    // Direct APK File Sharing — filename always matches current app versionName
+    // Dynamic one-tap download link sharing matching the current app version
     fun shareApp(context: Context) {
         try {
-            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            val versionName = packageInfo.versionName ?: "2.0.2"
+            val versionName = DeviceInfoHelper.getAppVersion(context)
+            val directDownloadUrl = "https://github.com/dk2017044/ElectroKit/raw/main/Build_Releases_APK/ElectroKit_v$versionName.apk"
+            val releasesUrl = "https://github.com/dk2017044/ElectroKit/releases"
 
-            val originalApk = File(context.applicationInfo.sourceDir)
-            val shareDir = File(context.cacheDir, "shared_apk")
-            shareDir.mkdirs()
-            // Delete old cached APKs with stale version names
-            shareDir.listFiles()?.forEach { it.delete() }
-            val targetApk = File(shareDir, "ElectroKit_v${versionName}.apk")
-
-            if (!targetApk.exists() || targetApk.length() != originalApk.length()) {
-                originalApk.copyTo(targetApk, overwrite = true)
-            }
-
-            val contentUri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.fileprovider",
-                targetApk
-            )
+            val shareMessage = """
+                ⚡ Download ElectroKit v$versionName ⚡
+                Modern Offline Electronics Toolkit (400+ Components & Calculators).
+                
+                📥 One-Click Direct Download Link (Check your browser downloads after tapping):
+                $directDownloadUrl
+                
+                🔄 Version History & Alternative Downloads:
+                $releasesUrl
+                
+                Created by Dilip Kumar
+            """.trimIndent()
 
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "application/vnd.android.package-archive"
-                putExtra(Intent.EXTRA_STREAM, contentUri)
-                putExtra(Intent.EXTRA_SUBJECT, "ElectroKit App APK (v$versionName)")
-                putExtra(
-                    Intent.EXTRA_TEXT,
-                    "Check out ElectroKit v$versionName - Modern Offline Electronics Toolkit (400 Component Database & Calculators) by Dilip Kumar!"
-                )
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                type = "text/plain"
+                putExtra(Intent.EXTRA_SUBJECT, "ElectroKit App Download")
+                putExtra(Intent.EXTRA_TEXT, shareMessage)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
 
-            val chooser = Intent.createChooser(shareIntent, "Share ElectroKit_v${versionName}.apk via")
+            val chooser = Intent.createChooser(shareIntent, "Share ElectroKit Download Link via")
             chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(chooser)
         } catch (e: Exception) {
             e.printStackTrace()
-            shareAppText(context)
         }
-    }
-
-    private fun shareAppText(context: Context) {
-        val shareMessage = """
-Check out ElectroKit - Electronics Toolkit v2.0.1.
-
-Features:
-- Electronics Engineering Calculators
-- 400+ Component Database
-- Number System Converter
-- Developed by Dilip Kumar
-        """.trimIndent()
-
-        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_SUBJECT, "ElectroKit - Electronics Toolkit")
-            putExtra(Intent.EXTRA_TEXT, shareMessage)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        val chooser = Intent.createChooser(shareIntent, "Share ElectroKit via")
-        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(chooser)
     }
 
     fun rateApp(context: Context, onShowMessage: (String) -> Unit) {

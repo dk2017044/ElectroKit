@@ -1,0 +1,6 @@
+ElectroKit v3.0.0 Release Notes
+- Added a modern Visual Grid mode to the Resistor Color Code Calculator using visual color radio buttons.
+- Overwrote profile photo in developer & app info with new portrait image (Dp.png).
+- Fixed vertical squeezed layout wrapping for all version name badges on settings screens.
+- Zero startup white flash (window background style #121212) and standardized default app theme mode to Dark.
+- Upgraded app sharing to share a lightweight 1-tap download link from GitHub raw branch instead of heavy APK binaries.

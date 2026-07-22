@@ -1,0 +1,5 @@
+ElectroKit v2.0.4 Release Notes
+- Fixed startup theme flash by configuring window background to a dark hex value (#121212) inside parent style resources.
+- Standardized default app theme mode to Dark for all users.
+- Polished update check feedback to display a visual checkmark dialog when running the latest version.
+- Replaced direct binary APK sharing with a fast dynamic GitHub raw download link.

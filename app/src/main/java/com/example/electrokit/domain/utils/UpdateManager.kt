@@ -344,7 +344,23 @@ object UpdateManager {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        context.startActivity(intent)
+    }
+
+    fun cleanUpLeftoverApks(context: Context) {
+        executor.execute {
+            try {
+                val downloadDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                if (downloadDir != null && downloadDir.exists() && downloadDir.isDirectory) {
+                    downloadDir.listFiles()?.forEach { file ->
+                        if (file.isFile && file.name.endsWith(".apk")) {
+                            file.delete()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     fun showUpdateNotification(context: Context, latestVersion: String) {

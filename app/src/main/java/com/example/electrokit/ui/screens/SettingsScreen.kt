@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -248,7 +249,9 @@ fun SettingsScreen(
                                                 Text(
                                                     text = "v${DeviceInfoHelper.getAppVersion(context)}",
                                                     fontSize = 10.sp,
-                                                    fontWeight = FontWeight.Bold,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    maxLines = 1,
+                                                    softWrap = false,
                                                     color = Color(0xFF2563EB),
                                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                                 )
@@ -521,6 +524,8 @@ fun SettingsScreen(
                                             text = "v${DeviceInfoHelper.getAppVersion(context)}",
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.SemiBold,
+                                            maxLines = 1,
+                                            softWrap = false,
                                             color = Color(0xFF2563EB),
                                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                         )
@@ -641,8 +646,8 @@ fun SettingsScreen(
                 item {
                     SupportOptionCard(
                         icon = Icons.Default.Share,
-                        title = "Share ElectroKit APK",
-                        description = "Share current app version (v2.0.2) APK file directly with friends via WhatsApp, Bluetooth, LocalSend.",
+                        title = "Share ElectroKit",
+                        description = "Share the direct one-click download link of the app's latest version with friends.",
                         onClick = { viewModel.shareApp(context) }
                     )
                 }
@@ -801,6 +806,94 @@ fun SettingsScreen(
                     onClick = { viewModel.clearAllReleases() }
                 ) {
                     Text("Close", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                }
+            },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    }
+
+    if (viewModel.showUpToDateDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.showUpToDateDialog = false },
+            title = {
+                Text(
+                    text = "App Up To Date! ✅",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Up To Date",
+                        tint = Color(0xFF10B981),
+                        modifier = Modifier.size(54.dp)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "You are running the latest version of ElectroKit (v${viewModel.upToDateVersion}). No updates are available at this time.",
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.showUpToDateDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
+                ) {
+                    Text("Got it!", color = Color.White)
+                }
+            },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    }
+
+    if (viewModel.showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.showErrorDialog = false },
+            title = {
+                Text(
+                    text = "Update Check Failed ⚠️",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "Error Checking Updates",
+                        tint = Color(0xFFEF4444),
+                        modifier = Modifier.size(54.dp)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = viewModel.errorDialogMsg,
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.showErrorDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444))
+                ) {
+                    Text("Close", color = Color.White)
                 }
             },
             shape = RoundedCornerShape(20.dp),

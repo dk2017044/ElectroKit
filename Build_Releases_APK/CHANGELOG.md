@@ -2,7 +2,27 @@
 
 ---
 
-## Version 2.0.3 (Build Code: 12) — Current Release
+## Version 3.0.0 (Build Code: 14) — Current Release
+- **Release Date**: 2026-07-23
+- **What's New**:
+  - **Visual Resistor Color Calculator**: Added a modern Visual Grid mode to the resistor color code calculator using visual color buttons (radio grid) directly representing colors.
+  - **Premium UI Polish**: Fixed version text vertical wrapping on squeezed layouts (such as on smaller screens).
+  - **Updated Profile/Avatar**: Refreshed the developer profile picture in the settings card with the new high-quality portrait image.
+  - **Theme Startup Stability**: Zero startup white flash (window background uses dark #121212) and standardized default app theme mode to Dark.
+
+---
+
+## Version 2.0.4 (Build Code: 13)
+- **Release Date**: 2026-07-23
+- **What's New**:
+  - **Zero Startup Flash**: Converted window parent background resources to dark values to eliminate startup light mode flashing.
+  - **Standardized Default Theme**: Deployed Dark theme as the fallback standard for all first-time launches.
+  - **Premium Update Check Feedback**: Tapping check for updates displays a custom dialog with checkmark animations if no updates are found.
+  - **Direct Download Link Sharing**: Replaced binary APK attachment sharing with a fast, dynamic link that pulls from the repository raw main branch.
+
+---
+
+## Version 2.0.3 (Build Code: 12)
 - **Release Date**: 2026-07-23
 - **What's New**:
   - **Automated GitHub Updates & Rollbacks**: Fully integrated background updates check and version history dialog to install older stable releases directly from GitHub.

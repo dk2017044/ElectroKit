@@ -13,6 +13,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -45,7 +46,7 @@ fun ElectroKitApp() {
     val context = LocalContext.current
     val themePrefs = remember(context) { context.getSharedPreferences("electrokit_theme_prefs", Context.MODE_PRIVATE) }
     val appPrefs = remember(context) { context.getSharedPreferences("electrokit_app_prefs", Context.MODE_PRIVATE) }
-    var isDarkTheme by remember { mutableStateOf(themePrefs.getBoolean("is_dark_theme", false)) }
+    var isDarkTheme by remember { mutableStateOf(themePrefs.getBoolean("is_dark_theme", true)) }
     var currentScreen by remember { mutableStateOf("splash") }
     var selectedComponent by remember { mutableStateOf<ComponentEntity?>(null) }
     var selectedBottomNavIndex by remember { mutableStateOf(0) }
@@ -56,8 +57,9 @@ fun ElectroKitApp() {
     // Quit confirmation double tap timestamp
     var lastBackPressTime by remember { mutableStateOf(0L) }
 
-    // Splash Timer (2 Seconds) + Silent Update check once a week
+    // Splash Timer (2 Seconds) + Silent Update check once a week + APK clean up
     LaunchedEffect(Unit) {
+        UpdateManager.cleanUpLeftoverApks(context)
         delay(2000)
         currentScreen = "main"
 
@@ -251,16 +253,16 @@ fun ElectroKitApp() {
                                         )
 
                                         Box(
-                                            modifier = Modifier
-                                                .width(tabWidth - 16.dp)
-                                                .height(44.dp)
-                                                .align(Alignment.CenterStart)
-                                                .offset(x = activePillXOffset)
-                                                .background(
-                                                    color = if (selectedBottomNavIndex == 2) Color(0xFFEF4444).copy(alpha = 0.08f) else Color(0xFF2563EB).copy(alpha = 0.08f),
-                                                    shape = RoundedCornerShape(16.dp)
-                                                )
-                                        )
+                                             modifier = Modifier
+                                                 .width(tabWidth - 16.dp)
+                                                 .height(38.dp)
+                                                 .align(Alignment.CenterStart)
+                                                 .offset(x = activePillXOffset)
+                                                 .background(
+                                                     color = if (selectedBottomNavIndex == 2) Color(0xFFEF4444).copy(alpha = 0.08f) else Color(0xFF2563EB).copy(alpha = 0.08f),
+                                                     shape = CircleShape
+                                                 )
+                                         )
 
                                         // Tabs content Row
                                         Row(
