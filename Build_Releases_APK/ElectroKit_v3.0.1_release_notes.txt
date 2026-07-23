@@ -1,0 +1,8 @@
+ElectroKit v3.0.1 Release Notes
+- Consolidated Compose back handlers on the main screen into a unified flow to support modern gesture/predictive back patterns.
+- Configured a dedicated release signing keystore (release.keystore) in Gradle build configs.
+- Enabled R8 minification and resource shrinking, reducing APK file size by 76% (from 14.34 MB down to 3.38 MB).
+- Applied window splash screen and system bar background styles (#0B0F19) to ensure a 100% dark mode startup.
+- Simplified the Resistor calculator to keep only the interactive Visual Mode, removing dropdown selectors.
+- Added typical LED color presets (Red, Green, Yellow, Blue, White), decimal keyboards, and comma-safe input parsing.
+- Upgraded the Series/Parallel calculator to support a dynamic scrollable list of fields (using + and - buttons) and correct units (Ω, µF, mH).
