@@ -7,18 +7,29 @@ plugins {
 android {
     namespace = "com.example.electrokit"
     compileSdk = 36
+    signingConfigs {
+        create("release") {
+            storeFile = file("release.keystore")
+            storePassword = "electrokitpass"
+            keyAlias = "electrokitkey"
+            keyPassword = "electrokitpass"
+        }
+    }
+
     defaultConfig {
         applicationId = "com.example.electrokit"
         minSdk = 24
         targetSdk = 34
-        versionCode = 14
-        versionName = "3.0.0"
+        versionCode = 15
+        versionName = "3.0.1"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -44,27 +55,12 @@ kotlin {
 }
 
 afterEvaluate {
-    tasks.register<Copy>("archiveVersionedDebugApk") {
-        val verName = android.defaultConfig.versionName ?: "1.0"
-        from(layout.buildDirectory.file("outputs/apk/debug/app-debug.apk"))
-        into(rootProject.file("Build_Releases_APK"))
-        rename { "ElectroKit_v${verName}.apk" }
-    }
-
     tasks.register<Copy>("archiveVersionedReleaseApk") {
         val verName = android.defaultConfig.versionName ?: "1.0"
-        val releaseApk = layout.buildDirectory.file("outputs/apk/release/app-release.apk")
-        val releaseUnsignedApk = layout.buildDirectory.file("outputs/apk/release/app-release-unsigned.apk")
-        
-        from(provider {
-            if (releaseApk.get().asFile.exists()) releaseApk else releaseUnsignedApk
-        })
+        from(layout.buildDirectory.dir("outputs/apk/release"))
+        include("app-release.apk", "app-release-unsigned.apk")
         into(rootProject.file("Build_Releases_APK"))
         rename { "ElectroKit_v${verName}.apk" }
-    }
-
-    tasks.named("assembleDebug") {
-        finalizedBy("archiveVersionedDebugApk")
     }
 
     tasks.named("assembleRelease") {

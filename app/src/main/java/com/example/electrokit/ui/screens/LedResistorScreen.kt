@@ -3,6 +3,8 @@ package com.example.electrokit.ui.screens
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +24,8 @@ import com.example.electrokit.domain.calculations.LedResistorCalculator
 import com.example.electrokit.ui.components.PcbBackground
 import com.example.electrokit.ui.components.electroKitTextFieldColors
 
+data class LedPreset(val colorName: String, val chipColor: Color, val vf: String, val ma: String)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LedResistorScreen(onBack: () -> Unit) {
@@ -31,9 +35,20 @@ fun LedResistorScreen(onBack: () -> Unit) {
     var ledVf by remember { mutableStateOf("2.0") }
     var ledCurrentmA by remember { mutableStateOf("20.0") }
 
-    val vs = supplyV.toDoubleOrNull() ?: 0.0
-    val vf = ledVf.toDoubleOrNull() ?: 0.0
-    val ma = ledCurrentmA.toDoubleOrNull() ?: 0.0
+    val presets = remember {
+        listOf(
+            LedPreset("Red", Color(0xFFEF4444), "2.0", "20.0"),
+            LedPreset("Green", Color(0xFF10B981), "2.2", "20.0"),
+            LedPreset("Yellow", Color(0xFFF59E0B), "2.1", "20.0"),
+            LedPreset("Blue", Color(0xFF3B82F6), "3.2", "20.0"),
+            LedPreset("White", Color(0xFFE5E7EB), "3.2", "20.0")
+        )
+    }
+    var selectedPresetName by remember { mutableStateOf<String?>(null) }
+
+    val vs = supplyV.replace(',', '.').toDoubleOrNull() ?: 0.0
+    val vf = ledVf.replace(',', '.').toDoubleOrNull() ?: 0.0
+    val ma = ledCurrentmA.replace(',', '.').toDoubleOrNull() ?: 0.0
 
     val calcResult = remember(vs, vf, ma) {
         LedResistorCalculator.calculate(vs, vf, ma)
@@ -84,32 +99,75 @@ fun LedResistorScreen(onBack: () -> Unit) {
                     .padding(innerPadding)
                     .padding(16.dp)
             ) {
+                // Preset LED selector
+                Text(
+                    text = "Preset LED Color",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF2563EB),
+                    modifier = Modifier.padding(bottom = 6.dp)
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    presets.forEach { preset ->
+                        FilterChip(
+                            selected = selectedPresetName == preset.colorName,
+                            onClick = {
+                                selectedPresetName = preset.colorName
+                                ledVf = preset.vf
+                                ledCurrentmA = preset.ma
+                            },
+                            label = { Text(preset.colorName, fontSize = 12.sp) },
+                            leadingIcon = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(12.dp)
+                                        .background(preset.chipColor, CircleShape)
+                                )
+                            }
+                        )
+                    }
+                }
+
                 OutlinedTextField(
                     value = supplyV,
                     onValueChange = { supplyV = it },
                     label = { Text("Supply Voltage (Vs in Volts)") },
                     colors = electroKitTextFieldColors(),
                     shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                     singleLine = true
                 )
 
                 OutlinedTextField(
                     value = ledVf,
-                    onValueChange = { ledVf = it },
+                    onValueChange = {
+                        ledVf = it
+                        selectedPresetName = null
+                    },
                     label = { Text("LED Forward Voltage (Vf in Volts)") },
                     colors = electroKitTextFieldColors(),
                     shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                     singleLine = true
                 )
 
                 OutlinedTextField(
                     value = ledCurrentmA,
-                    onValueChange = { ledCurrentmA = it },
+                    onValueChange = {
+                        ledCurrentmA = it
+                        selectedPresetName = null
+                    },
                     label = { Text("LED Forward Current (If in mA)") },
                     colors = electroKitTextFieldColors(),
                     shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                     singleLine = true
                 )

@@ -199,18 +199,13 @@ fun ElectroKitApp() {
                 }
 
                 "main" -> {
-                    // Back handler for bottom navigation tabs
-                    if (selectedBottomNavIndex == 1 && sharedSearchQuery.isNotBlank()) {
-                        BackHandler {
+                    // Unified back handler for main screen navigation and exit confirmation
+                    BackHandler(enabled = true) {
+                        if (selectedBottomNavIndex == 1 && sharedSearchQuery.isNotBlank()) {
                             sharedSearchQuery = ""
-                        }
-                    } else if (selectedBottomNavIndex != 0) {
-                        BackHandler {
+                        } else if (selectedBottomNavIndex != 0) {
                             selectedBottomNavIndex = 0
-                        }
-                    } else {
-                        // Quit confirmation on double click back button
-                        BackHandler {
+                        } else {
                             val currentTime = System.currentTimeMillis()
                             if (currentTime - lastBackPressTime < 2000) {
                                 (context as? android.app.Activity)?.finish()

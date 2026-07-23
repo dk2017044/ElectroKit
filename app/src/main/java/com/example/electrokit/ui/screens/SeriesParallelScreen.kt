@@ -3,9 +3,14 @@ package com.example.electrokit.ui.screens
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.electrokit.domain.calculations.SeriesParallelCalculator
@@ -24,17 +30,11 @@ import com.example.electrokit.ui.components.electroKitTextFieldColors
 fun SeriesParallelScreen(onBack: () -> Unit) {
     BackHandler { onBack() }
 
-    var val1Input by remember { mutableStateOf("10.0") }
-    var val2Input by remember { mutableStateOf("20.0") }
-    var val3Input by remember { mutableStateOf("") }
+    val inputs = remember { mutableStateListOf("10.0", "20.0") }
     var mode by remember { mutableStateOf("Resistors") }
 
-    val values = remember(val1Input, val2Input, val3Input) {
-        listOfNotNull(
-            val1Input.toDoubleOrNull(),
-            val2Input.toDoubleOrNull(),
-            val3Input.toDoubleOrNull()
-        )
+    val values = remember(inputs.toList()) {
+        inputs.mapNotNull { it.replace(',', '.').toDoubleOrNull() }
     }
 
     val resResult = remember(values, mode) {
@@ -44,8 +44,6 @@ fun SeriesParallelScreen(onBack: () -> Unit) {
             SeriesParallelCalculator.calculateCapacitors(values)
         }
     }
-
-
 
     Scaffold(
         topBar = {
@@ -77,6 +75,7 @@ fun SeriesParallelScreen(onBack: () -> Unit) {
                     .fillMaxSize()
                     .padding(innerPadding)
                     .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
@@ -91,37 +90,61 @@ fun SeriesParallelScreen(onBack: () -> Unit) {
                     }
                 }
 
-                OutlinedTextField(
-                    value = val1Input,
-                    onValueChange = { val1Input = it },
-                    label = { Text("Component 1 Value") },
-                    colors = electroKitTextFieldColors(),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
-                    singleLine = true
-                )
+                // Dynamic input fields list
+                inputs.forEachIndexed { index, inputValue ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = inputValue,
+                            onValueChange = { inputs[index] = it },
+                            label = { Text("Component ${index + 1} Value") },
+                            colors = electroKitTextFieldColors(),
+                            shape = RoundedCornerShape(12.dp),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.weight(1f),
+                            singleLine = true
+                        )
 
-                OutlinedTextField(
-                    value = val2Input,
-                    onValueChange = { val2Input = it },
-                    label = { Text("Component 2 Value") },
-                    colors = electroKitTextFieldColors(),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
-                    singleLine = true
-                )
+                        Spacer(modifier = Modifier.width(8.dp))
 
-                OutlinedTextField(
-                    value = val3Input,
-                    onValueChange = { val3Input = it },
-                    label = { Text("Component 3 Value (Optional)") },
-                    colors = electroKitTextFieldColors(),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                    singleLine = true
-                )
+                        IconButton(
+                            onClick = {
+                                if (inputs.size > 1) {
+                                    inputs.removeAt(index)
+                                }
+                            },
+                            enabled = inputs.size > 1
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Remove,
+                                contentDescription = "Remove Component",
+                                tint = if (inputs.size > 1) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            )
+                        }
+                    }
+                }
 
+                // Add component button row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(
+                        onClick = { inputs.add("") }
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Add Component", modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Add Component", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
 
+                // Calculation Result Card
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -138,9 +161,15 @@ fun SeriesParallelScreen(onBack: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         if (resResult != null) {
+                            val unit = when (mode) {
+                                "Resistors" -> "Ω"
+                                "Capacitors" -> "µF"
+                                "Inductors" -> "mH"
+                                else -> ""
+                            }
                             Text(
-                                text = "Series Total: ${resResult.seriesTotal}\n" +
-                                       "Parallel Total: ${resResult.parallelTotal}",
+                                text = "Series Total: ${resResult.seriesTotal} $unit\n" +
+                                       "Parallel Total: ${resResult.parallelTotal} $unit",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,

@@ -3,6 +3,8 @@ package com.example.electrokit.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -31,9 +33,9 @@ fun OhmsLawScreen(onBack: () -> Unit) {
         iVal: String = iInput,
         rVal: String = rInput
     ) {
-        val v = vVal.toDoubleOrNull()
-        val i = iVal.toDoubleOrNull()
-        val r = rVal.toDoubleOrNull()
+        val v = vVal.replace(',', '.').toDoubleOrNull()
+        val i = iVal.replace(',', '.').toDoubleOrNull()
+        val r = rVal.replace(',', '.').toDoubleOrNull()
 
         val calc = when (targetParameter) {
             "Resistance (R)" -> if (v != null && i != null && i != 0.0) OhmsLawCalculator.calculate(v = v, i = i) else null
@@ -128,6 +130,7 @@ fun OhmsLawScreen(onBack: () -> Unit) {
                     enabled = isVEnabled,
                     colors = electroKitTextFieldColors(),
                     shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                     singleLine = true
                 )
@@ -141,6 +144,7 @@ fun OhmsLawScreen(onBack: () -> Unit) {
                     enabled = isIEnabled,
                     colors = electroKitTextFieldColors(),
                     shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                     singleLine = true
                 )
@@ -154,6 +158,7 @@ fun OhmsLawScreen(onBack: () -> Unit) {
                     enabled = isREnabled,
                     colors = electroKitTextFieldColors(),
                     shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                     singleLine = true
                 )

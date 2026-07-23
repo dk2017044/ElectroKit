@@ -34,7 +34,7 @@ fun ResistorColorScreen(onBack: () -> Unit) {
     var b2 by remember { mutableStateOf(ResistorColor.BLACK) }
     var mult by remember { mutableStateOf(ResistorColor.RED) }
     var tol by remember { mutableStateOf(ResistorColor.GOLD) }
-    var isVisualMode by remember { mutableStateOf(false) }
+
 
     val calcResult = remember(b1, b2, mult, tol) {
         ResistorColorCode.decode4Band(b1, b2, mult, tol)
@@ -167,131 +167,57 @@ fun ResistorColorScreen(onBack: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Mode Selector Pill
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
-                        .padding(4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    listOf(false to "Standard Mode", true to "Visual Mode").forEach { (mode, label) ->
-                        val selected = isVisualMode == mode
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(36.dp)
-                                .background(
-                                    color = if (selected) Color(0xFF2563EB) else Color.Transparent,
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                                .clickable { isVisualMode = mode },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = label,
-                                color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (!isVisualMode) {
-                    // Band 1 Selector
-                    Text("Band 1 (1st Digit)", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color(0xFF2563EB))
-                    ColorDropdown(selected = b1, onSelect = { b1 = it }, options = listOf(
-                        ResistorColor.BLACK, ResistorColor.BROWN, ResistorColor.RED, ResistorColor.ORANGE,
-                        ResistorColor.YELLOW, ResistorColor.GREEN, ResistorColor.BLUE,
-                        ResistorColor.VIOLET, ResistorColor.GREY, ResistorColor.WHITE
-                    ))
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    // Band 2 Selector
-                    Text("Band 2 (2nd Digit)", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color(0xFF2563EB))
-                    ColorDropdown(selected = b2, onSelect = { b2 = it }, options = listOf(
+                // Visual radio grid layout matching the user's screenshots
+                VisualColorSelector(
+                    title = "1st Band Color:",
+                    selected = b1,
+                    options = listOf(
                         ResistorColor.BLACK, ResistorColor.BROWN, ResistorColor.RED,
                         ResistorColor.ORANGE, ResistorColor.YELLOW, ResistorColor.GREEN,
                         ResistorColor.BLUE, ResistorColor.VIOLET, ResistorColor.GREY, ResistorColor.WHITE
-                    ))
+                    ),
+                    onSelect = { b1 = it }
+                )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                    // Multiplier Selector
-                    Text("Multiplier", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color(0xFF2563EB))
-                    ColorDropdown(selected = mult, onSelect = { mult = it }, options = listOf(
+                VisualColorSelector(
+                    title = "2nd Band Color:",
+                    selected = b2,
+                    options = listOf(
                         ResistorColor.BLACK, ResistorColor.BROWN, ResistorColor.RED,
                         ResistorColor.ORANGE, ResistorColor.YELLOW, ResistorColor.GREEN,
-                        ResistorColor.BLUE, ResistorColor.VIOLET, ResistorColor.GREY, ResistorColor.WHITE,
-                        ResistorColor.GOLD, ResistorColor.SILVER
-                    ))
+                        ResistorColor.BLUE, ResistorColor.VIOLET, ResistorColor.GREY, ResistorColor.WHITE
+                    ),
+                    onSelect = { b2 = it }
+                )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                    // Tolerance Selector
-                    Text("Tolerance", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color(0xFF2563EB))
-                    ColorDropdown(selected = tol, onSelect = { tol = it }, options = listOf(
+                VisualColorSelector(
+                    title = "Multiplier Color:",
+                    selected = mult,
+                    options = listOf(
+                        ResistorColor.BLACK, ResistorColor.BROWN, ResistorColor.RED,
+                        ResistorColor.ORANGE, ResistorColor.YELLOW, ResistorColor.GREEN,
+                        ResistorColor.BLUE, ResistorColor.VIOLET, ResistorColor.GREY,
+                        ResistorColor.WHITE, ResistorColor.GOLD, ResistorColor.SILVER
+                    ),
+                    onSelect = { mult = it }
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                VisualColorSelector(
+                    title = "Tolerance Color:",
+                    selected = tol,
+                    options = listOf(
                         ResistorColor.BROWN, ResistorColor.RED, ResistorColor.ORANGE,
                         ResistorColor.YELLOW, ResistorColor.GREEN, ResistorColor.BLUE,
                         ResistorColor.VIOLET, ResistorColor.GREY, ResistorColor.GOLD, ResistorColor.SILVER
-                    ))
-                } else {
-                    // Visual radio grid layout matching the user's screenshots
-                    VisualColorSelector(
-                        title = "1st Band Color:",
-                        selected = b1,
-                        options = listOf(
-                            ResistorColor.BLACK, ResistorColor.BROWN, ResistorColor.RED,
-                            ResistorColor.ORANGE, ResistorColor.YELLOW, ResistorColor.GREEN,
-                            ResistorColor.BLUE, ResistorColor.VIOLET, ResistorColor.GREY, ResistorColor.WHITE
-                        ),
-                        onSelect = { b1 = it }
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    VisualColorSelector(
-                        title = "2nd Band Color:",
-                        selected = b2,
-                        options = listOf(
-                            ResistorColor.BLACK, ResistorColor.BROWN, ResistorColor.RED,
-                            ResistorColor.ORANGE, ResistorColor.YELLOW, ResistorColor.GREEN,
-                            ResistorColor.BLUE, ResistorColor.VIOLET, ResistorColor.GREY, ResistorColor.WHITE
-                        ),
-                        onSelect = { b2 = it }
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    VisualColorSelector(
-                        title = "Multiplier Color:",
-                        selected = mult,
-                        options = listOf(
-                            ResistorColor.BLACK, ResistorColor.BROWN, ResistorColor.RED,
-                            ResistorColor.ORANGE, ResistorColor.YELLOW, ResistorColor.GREEN,
-                            ResistorColor.BLUE, ResistorColor.VIOLET, ResistorColor.GREY,
-                            ResistorColor.WHITE, ResistorColor.GOLD, ResistorColor.SILVER
-                        ),
-                        onSelect = { mult = it }
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    VisualColorSelector(
-                        title = "Tolerance Color:",
-                        selected = tol,
-                        options = listOf(
-                            ResistorColor.BROWN, ResistorColor.RED, ResistorColor.ORANGE,
-                            ResistorColor.YELLOW, ResistorColor.GREEN, ResistorColor.BLUE,
-                            ResistorColor.VIOLET, ResistorColor.GREY, ResistorColor.GOLD, ResistorColor.SILVER
-                        ),
-                        onSelect = { tol = it }
-                    )
-                }
+                    ),
+                    onSelect = { tol = it }
+                )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -325,45 +251,6 @@ fun ResistorColorScreen(onBack: () -> Unit) {
                         )
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun ColorDropdown(
-    selected: ResistorColor,
-    onSelect: (ResistorColor) -> Unit,
-    options: List<ResistorColor>
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box(modifier = Modifier.fillMaxWidth()) {
-        OutlinedButton(
-            onClick = { expanded = true },
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            ),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text("${selected.colorName} (${selected.digit.takeIf { it >= 0 } ?: selected.multiplier})")
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            options.forEach { colorOption ->
-                DropdownMenuItem(
-                    text = { Text(colorOption.colorName) },
-                    onClick = {
-                        onSelect(colorOption)
-                        expanded = false
-                    }
-                )
             }
         }
     }
