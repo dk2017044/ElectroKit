@@ -4,3 +4,6 @@ ElectroKit v3.0.2 Release Notes
 - Fixed direct developer email button to auto-fill recipient address (dk2017044@hotmail.com) across all email apps.
 - Updated app sharing to send a single direct download link (removed rollback message) and attached app logo image stream.
 - Removed Version History / Rollback card from Settings screen.
+
+SHA-256 Checksum:
+B28AA8299B284386D69FD2B3BE7A6EBC7F1E2EDA3EC44A58CCE68503B29B41A9
