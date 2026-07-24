@@ -1,0 +1,6 @@
+ElectroKit v3.0.2 Release Notes
+- Fixed auto-installer trigger in UpdateManager so downloaded update APKs launch package installer automatically.
+- Restored standard release build setup (signingConfigs.debug, isMinifyEnabled = false) for maximum device compatibility.
+- Fixed direct developer email button to auto-fill recipient address (dk2017044@hotmail.com) across all email apps.
+- Updated app sharing to send a single direct download link (removed rollback message) and attached app logo image stream.
+- Removed Version History / Rollback card from Settings screen.

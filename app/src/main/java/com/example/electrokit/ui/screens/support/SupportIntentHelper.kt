@@ -52,13 +52,11 @@ object SupportIntentHelper {
         onError: (String) -> Unit
     ) {
         try {
-            val mailtoUri = Uri.parse("mailto:$SUPPORT_EMAIL")
-                .buildUpon()
-                .appendQueryParameter("subject", subject)
-                .appendQueryParameter("body", body)
-                .build()
-
-            val emailIntent = Intent(Intent.ACTION_SENDTO, mailtoUri).apply {
+            val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                data = Uri.parse("mailto:")
+                putExtra(Intent.EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
+                putExtra(Intent.EXTRA_SUBJECT, subject)
+                putExtra(Intent.EXTRA_TEXT, body)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(emailIntent)
@@ -78,12 +76,36 @@ object SupportIntentHelper {
         }
     }
 
+    private fun getAppLogoUri(context: Context): Uri? {
+        return try {
+            val drawable = context.packageManager.getApplicationIcon(context.packageName)
+            val bitmap = android.graphics.Bitmap.createBitmap(
+                drawable.intrinsicWidth.coerceAtLeast(100),
+                drawable.intrinsicHeight.coerceAtLeast(100),
+                android.graphics.Bitmap.Config.ARGB_8888
+            )
+            val canvas = android.graphics.Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
+
+            val cachePath = File(context.cacheDir, "shared_images")
+            cachePath.mkdirs()
+            val file = File(cachePath, "electrokit_logo.png")
+            val stream = java.io.FileOutputStream(file)
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, stream)
+            stream.close()
+
+            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     // Dynamic one-tap download link sharing matching the current app version
     fun shareApp(context: Context) {
         try {
             val versionName = DeviceInfoHelper.getAppVersion(context)
             val directDownloadUrl = "https://github.com/dk2017044/ElectroKit/raw/main/Build_Releases_APK/ElectroKit_v$versionName.apk"
-            val releasesUrl = "https://github.com/dk2017044/ElectroKit/releases"
 
             val shareMessage = """
                 ⚡ Download ElectroKit v$versionName ⚡
@@ -92,20 +114,22 @@ object SupportIntentHelper {
                 📥 One-Click Direct Download Link (Check your browser downloads after tapping):
                 $directDownloadUrl
                 
-                🔄 Version History & Alternative Downloads:
-                $releasesUrl
-                
                 Created by Dilip Kumar
             """.trimIndent()
 
+            val logoUri = getAppLogoUri(context)
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
+                type = if (logoUri != null) "image/*" else "text/plain"
                 putExtra(Intent.EXTRA_SUBJECT, "ElectroKit App Download")
                 putExtra(Intent.EXTRA_TEXT, shareMessage)
+                if (logoUri != null) {
+                    putExtra(Intent.EXTRA_STREAM, logoUri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
 
-            val chooser = Intent.createChooser(shareIntent, "Share ElectroKit Download Link via")
+            val chooser = Intent.createChooser(shareIntent, "Share ElectroKit via")
             chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(chooser)
         } catch (e: Exception) {
