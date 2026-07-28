@@ -20,11 +20,14 @@ android {
         applicationId = "com.example.electrokit"
         minSdk = 24
         targetSdk = 34
-        versionCode = 4
-        versionName = "4.0.0"
+        versionCode = 20
+        versionName = "4.0.1"
     }
 
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("release")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

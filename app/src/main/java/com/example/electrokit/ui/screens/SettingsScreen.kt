@@ -875,6 +875,7 @@ fun SettingsScreen(
                     onClick = {
                         triggerHaptic()
                         viewModel.startDownload(context, latestUpdate.downloadUrl, latestUpdate.latestVersion, latestUpdate.releaseNotes)
+                        viewModel.clearUpdateState()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
