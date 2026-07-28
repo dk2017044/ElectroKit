@@ -76,7 +76,7 @@ fun SupportScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            PcbBackground(color = Color(0xFF2563EB))
+            PcbBackground(color = MaterialTheme.colorScheme.primary)
 
             LazyColumn(
                 modifier = Modifier
@@ -103,7 +103,7 @@ fun SupportScreen(
                                     modifier = Modifier
                                         .size(64.dp)
                                         .clip(CircleShape)
-                                        .border(2.dp, Color(0xFF2563EB), CircleShape)
+                                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
                                 )
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column {
@@ -111,7 +111,7 @@ fun SupportScreen(
                                         text = "Dilip Kumar",
                                         fontSize = 20.sp,
                                         fontWeight = FontWeight.Medium, // Poppins Medium
-                                        color = Color(0xFF2563EB)
+                                        color = MaterialTheme.colorScheme.primary
                                     )
                                     Text(
                                         text = "Developer & Creator",
@@ -120,14 +120,14 @@ fun SupportScreen(
                                     )
                                     Surface(
                                         shape = RoundedCornerShape(6.dp),
-                                        color = Color(0xFF2563EB).copy(alpha = 0.12f),
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                                         modifier = Modifier.padding(top = 4.dp)
                                     ) {
                                         Text(
                                             text = "ElectroKit v2.0.2",
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.SemiBold,
-                                            color = Color(0xFF2563EB),
+                                            color = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                                         )
                                     }
@@ -179,14 +179,14 @@ fun SupportScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Surface(
                                     shape = RoundedCornerShape(12.dp),
-                                    color = Color(0xFF2563EB).copy(alpha = 0.08f),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
                                     modifier = Modifier.size(44.dp)
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
                                         Icon(
                                             imageVector = Icons.Default.Info,
                                             contentDescription = "About ElectroKit",
-                                            tint = Color(0xFF2563EB),
+                                            tint = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.size(24.dp)
                                         )
                                     }
@@ -218,7 +218,7 @@ fun SupportScreen(
                         text = "Support & Feedback",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium, // Poppins Medium
-                        color = Color(0xFF2563EB),
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
@@ -312,7 +312,7 @@ fun InfoDetailRow(
         Icon(
             imageVector = icon,
             contentDescription = label,
-            tint = Color(0xFF2563EB).copy(alpha = 0.8f),
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
             modifier = Modifier
                 .size(18.dp)
                 .padding(top = 2.dp)
@@ -329,7 +329,7 @@ fun InfoDetailRow(
                 text = value,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
-                color = if (isClickable) Color(0xFF2563EB) else MaterialTheme.colorScheme.onSurface,
+                color = if (isClickable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 lineHeight = 17.sp
             )
         }
@@ -357,14 +357,14 @@ fun SupportOptionCard(
         ) {
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = Color(0xFF2563EB).copy(alpha = 0.08f),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
                 modifier = Modifier.size(44.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = icon,
                         contentDescription = title,
-                        tint = Color(0xFF2563EB),
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                 }

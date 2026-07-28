@@ -32,6 +32,10 @@ fun ComponentDetailScreen(
     component: ComponentEntity,
     onBack: () -> Unit
 ) {
+    androidx.activity.compose.BackHandler {
+        onBack()
+    }
+
     val context = LocalContext.current
     var isFavorite by remember { mutableStateOf(FavoritesManager.isFavorite(context, component.partNumber)) }
 
@@ -55,7 +59,7 @@ fun ComponentDetailScreen(
                     }) {
                         Icon(
                             imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            tint = if (isFavorite) Color.Red else Color(0xFF2563EB),
+                            tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.primary,
                             contentDescription = "Toggle Favorite"
                         )
                     }
@@ -74,7 +78,7 @@ fun ComponentDetailScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            PcbBackground(color = Color(0xFF2563EB))
+            PcbBackground(color = MaterialTheme.colorScheme.primary)
 
             LazyColumn(
                 modifier = Modifier
@@ -91,7 +95,7 @@ fun ComponentDetailScreen(
                                 text = component.componentName,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Medium, // Poppins Medium
-                                color = Color(0xFF2563EB)
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -291,7 +295,7 @@ fun ComponentDetailScreen(
                                     text = "Interactive Datasheet Explorer",
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = Color(0xFF2563EB)
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                                 Text(
                                     text = "Explore dynamic specifications and component database.",
@@ -308,7 +312,7 @@ fun ComponentDetailScreen(
                                 Icon(
                                     imageVector = Icons.Default.Search,
                                     contentDescription = "Explore Zoom",
-                                    tint = Color(0xFF2563EB),
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(28.dp)
                                 )
                             }
@@ -325,19 +329,16 @@ fun DetailSectionCard(
     title: String,
     content: @Composable () -> Unit
 ) {
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(20.dp), ambientColor = Color.LightGray.copy(alpha = 0.15f), spotColor = Color.LightGray.copy(alpha = 0.15f))
+    com.example.electrokit.ui.components.ElectroKitCard(
+        cornerRadius = 20.dp,
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = title,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF2563EB),
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 6.dp)
             )
             content()

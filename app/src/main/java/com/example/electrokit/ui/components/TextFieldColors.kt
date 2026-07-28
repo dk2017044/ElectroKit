@@ -8,17 +8,16 @@ import androidx.compose.ui.graphics.Color
 
 /**
  * A standardized OutlinedTextField color scheme used across all calculator screens.
- * Ensures input text, label, cursor and border are always visible in both
- * light and dark theme modes.
+ * Ensures input text, label, cursor and border are always visible with accent highlights.
  */
 @Composable
 fun electroKitTextFieldColors(
-    accentColor: Color = Color(0xFF2563EB)
+    accentColor: Color = MaterialTheme.colorScheme.primary
 ): TextFieldColors = OutlinedTextFieldDefaults.colors(
     // ── Container ──────────────────────────────────────────────────────────────
-    focusedContainerColor   = MaterialTheme.colorScheme.surface,
-    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-    disabledContainerColor  = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+    focusedContainerColor   = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+    unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f),
+    disabledContainerColor  = MaterialTheme.colorScheme.surface.copy(alpha = 0.4f),
     errorContainerColor     = MaterialTheme.colorScheme.errorContainer,
 
     // ── Text (what the user types) ─────────────────────────────────────────────
@@ -33,24 +32,24 @@ fun electroKitTextFieldColors(
 
     // ── Label ──────────────────────────────────────────────────────────────────
     focusedLabelColor   = accentColor,
-    unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+    unfocusedLabelColor = accentColor.copy(alpha = 0.75f),
     disabledLabelColor  = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
     errorLabelColor     = MaterialTheme.colorScheme.error,
 
     // ── Placeholder ────────────────────────────────────────────────────────────
-    focusedPlaceholderColor   = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+    focusedPlaceholderColor   = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
     disabledPlaceholderColor  = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
 
-    // ── Border ─────────────────────────────────────────────────────────────────
+    // ── Border (Glassmorphic Accent Border Highlight) ───────────────────────────
     focusedBorderColor   = accentColor,
-    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+    unfocusedBorderColor = accentColor.copy(alpha = 0.28f),
     disabledBorderColor  = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
     errorBorderColor     = MaterialTheme.colorScheme.error,
 
     // ── Leading / Trailing icons ───────────────────────────────────────────────
     focusedLeadingIconColor   = accentColor,
-    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+    unfocusedLeadingIconColor = accentColor.copy(alpha = 0.75f),
     focusedTrailingIconColor  = accentColor,
-    unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+    unfocusedTrailingIconColor = accentColor.copy(alpha = 0.75f),
 )

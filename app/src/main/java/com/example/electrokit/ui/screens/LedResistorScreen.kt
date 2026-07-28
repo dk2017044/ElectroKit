@@ -91,7 +91,7 @@ fun LedResistorScreen(onBack: () -> Unit) {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            PcbBackground(color = Color(0xFF2563EB))
+            PcbBackground(color = MaterialTheme.colorScheme.primary)
 
             Column(
                 modifier = Modifier
@@ -104,7 +104,7 @@ fun LedResistorScreen(onBack: () -> Unit) {
                     text = "Preset LED Color",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(bottom = 6.dp)
                 )
                 Row(
@@ -205,19 +205,16 @@ fun LedResistorScreen(onBack: () -> Unit) {
                     )
                 }
 
-                Card(
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(2.dp, RoundedCornerShape(20.dp), ambientColor = Color.LightGray.copy(alpha = 0.15f), spotColor = Color.LightGray.copy(alpha = 0.15f))
+                com.example.electrokit.ui.components.ElectroKitCard(
+                    cornerRadius = 20.dp,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = "Calculation Result",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium, // Poppins Medium
-                            color = Color(0xFF2563EB)
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         if (calcResult != null) {

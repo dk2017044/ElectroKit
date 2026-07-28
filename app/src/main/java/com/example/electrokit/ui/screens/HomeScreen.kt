@@ -1,5 +1,8 @@
 package com.example.electrokit.ui.screens
 
+import android.content.Context
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
@@ -33,17 +36,21 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.electrokit.ui.components.PcbBackground
+import kotlinx.coroutines.delay
+import java.util.Calendar
 
 data class ToolItem(
     val title: String,
@@ -93,6 +100,106 @@ fun HomeScreen(
         }
     }
 
+    val primaryAccentColor = MaterialTheme.colorScheme.primary
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val themePrefs = remember(context) { context.getSharedPreferences("electrokit_theme_prefs", android.content.Context.MODE_PRIVATE) }
+    var userName by remember { mutableStateOf(themePrefs.getString("user_name", "Engineer") ?: "Engineer") }
+
+    LaunchedEffect(Unit) {
+        val saved = themePrefs.getString("user_name", "Engineer") ?: "Engineer"
+        userName = saved.ifBlank { "Engineer" }
+    }
+
+    // ── Time-Aware Greeting Generator ──────────────────────────────────────────
+    val greetingPrefix = remember {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        when (hour) {
+            in 5..11 -> "Good Morning"
+            in 12..16 -> "Good Afternoon"
+            in 17..22 -> "Good Evening"
+            else -> "Hello"
+        }
+    }
+    val prefixText = "$greetingPrefix, "
+    val highlightText = userName.ifBlank { "Engineer" }
+    val fullGreetingText = "$prefixText$highlightText"
+
+    // ── Typewriter Animation State ──────────────────────────────────────────────
+    var typedLength by remember { mutableStateOf(0) }
+    LaunchedEffect(fullGreetingText) {
+        typedLength = 0
+        for (i in 1..fullGreetingText.length) {
+            delay(38L)
+            typedLength = i
+        }
+    }
+    val isTypingComplete = typedLength >= fullGreetingText.length
+
+    val displayedPrefixText = prefixText.take(typedLength)
+    val displayedHighlightText = if (typedLength > prefixText.length) {
+        highlightText.take(typedLength - prefixText.length)
+    } else ""
+
+    // Blinking Cursor | Animation
+    val cursorTransition = rememberInfiniteTransition(label = "cursor_blink")
+    val cursorAlpha by cursorTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(450, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "cursor_alpha"
+    )
+
+    // ── Accent Color Gradient & Soft Pulse Wave Animation for "Engineer" ─────
+    val textGlowTransition = rememberInfiniteTransition(label = "text_glow")
+    val textGradientShift by textGlowTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 800f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "text_shift"
+    )
+
+    val engineerPulseScale by textGlowTransition.animateFloat(
+        initialValue = 0.98f,
+        targetValue = 1.03f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "engineer_pulse"
+    )
+
+    // Dynamic Brush gradient sweep linked to active Accent Color
+    val textAccentBrush = remember(primaryAccentColor, textGradientShift) {
+        Brush.linearGradient(
+            colors = listOf(
+                primaryAccentColor,
+                primaryAccentColor.copy(alpha = 0.7f),
+                Color(0xFF00E5FF),
+                primaryAccentColor
+            ),
+            start = Offset(textGradientShift, 0f),
+            end = Offset(textGradientShift + 300f, 0f)
+        )
+    }
+
+    // ── Waving Hand 👋 Rotation Animation ─────────────────────────────────────
+    val waveTransition = rememberInfiniteTransition(label = "hand_wave")
+    val waveAngle by waveTransition.animateFloat(
+        initialValue = -14f,
+        targetValue = 14f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(420, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "wave_angle"
+    )
+
     // Top Right Processor Icon Pulsing Animation
     val procTransition = rememberInfiniteTransition(label = "processor_glow")
     val scale by procTransition.animateFloat(
@@ -115,7 +222,7 @@ fun HomeScreen(
         label = "proc_glow_alpha"
     )
 
-    // Search Bar Glow: soft cyan/electric blue light traveling slowly around border outline once every 7 seconds
+    // Search Bar Glow
     val searchTransition = rememberInfiniteTransition(label = "search_glow")
     val searchProgress by searchTransition.animateFloat(
         initialValue = 0f,
@@ -130,13 +237,95 @@ fun HomeScreen(
     val gridState = rememberLazyGridState()
     val isScrolling = gridState.isScrollInProgress
 
+    val whatsNewPrefs = remember(context) { context.getSharedPreferences("electrokit_whats_new_prefs", Context.MODE_PRIVATE) }
+    var showWhatsNewDialog by remember {
+        mutableStateOf(whatsNewPrefs.getString("last_seen_version", "") != "4.0.0")
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
         // Subtle vector PCB background pattern
-        PcbBackground(color = Color(0xFF2563EB))
+        PcbBackground(color = primaryAccentColor)
+
+        if (showWhatsNewDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    whatsNewPrefs.edit().putString("last_seen_version", "4.0.0").apply()
+                    showWhatsNewDialog = false
+                },
+                title = {
+                    Text(
+                        text = "What's New in v4.0.0 🚀",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 380.dp)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = "Here is what's new and improved in today's major ElectroKit update:",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                        )
+
+                        WhatsNewFeatureItem(
+                            icon = Icons.Default.AutoAwesome,
+                            title = "Non-Stop Glowing Card Shimmer",
+                            description = "Continuous infinite glassmorphic shimmer sweep across all cards without turning dark or black."
+                        )
+                        WhatsNewFeatureItem(
+                            icon = Icons.Default.Bolt,
+                            title = "12-Point Electric Sparks Splash",
+                            description = "New logo animation with radiating electric sparks & dynamic accent theme integration."
+                        )
+                        WhatsNewFeatureItem(
+                            icon = Icons.Default.AccountCircle,
+                            title = "Custom User Profile Name",
+                            description = "Personalize your greeting name in Settings (e.g. Good Morning/Evening, Dilip 👋)."
+                        )
+                        WhatsNewFeatureItem(
+                            icon = Icons.Default.Highlight,
+                            title = "Accent Highlight Input Fields",
+                            description = "Sleek glassmorphic borders on all input boxes, search bars, and dropdown selectors."
+                        )
+                        WhatsNewFeatureItem(
+                            icon = Icons.Default.Storage,
+                            title = "Expanded Components DB",
+                            description = "Full datasheet catalog re-seeded with 400+ electronics components & pinouts."
+                        )
+                        WhatsNewFeatureItem(
+                            icon = Icons.Default.Waves,
+                            title = "Subtle Ambient PCB Waves",
+                            description = "Toned-down gentle circuit background motion for a calm, relaxing tech aesthetic."
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            whatsNewPrefs.edit().putString("last_seen_version", "4.0.0").apply()
+                            showWhatsNewDialog = false
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Awesome, Let's Go! 🚀", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                },
+                shape = RoundedCornerShape(24.dp),
+                containerColor = MaterialTheme.colorScheme.surface
+            )
+        }
 
         Column(
             modifier = Modifier
@@ -144,7 +333,7 @@ fun HomeScreen(
                 .statusBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            // Greeting Header
+            // ── Animated Header (Accent Gradient Shimmer + Typewriter + Wave Pulse) ──
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -152,23 +341,75 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "Hello, Engineer 👋",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.SemiBold, // Poppins SemiBold
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "Welcome to ElectroKit Offline Toolkit",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Normal, // Inter Regular
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Prefix text ("Good Evening, ")
+                        if (displayedPrefixText.isNotBlank()) {
+                            Text(
+                                text = displayedPrefixText,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        // Highlight word ("Engineer") with Accent Gradient Shimmer & Soft Pulse Wave
+                        if (displayedHighlightText.isNotBlank()) {
+                            Text(
+                                text = displayedHighlightText,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                                style = TextStyle(brush = textAccentBrush),
+                                modifier = Modifier.graphicsLayer(
+                                    scaleX = engineerPulseScale,
+                                    scaleY = engineerPulseScale
+                                )
+                            )
+                        }
+
+                        // Typewriter Cursor |
+                        if (!isTypingComplete) {
+                            Text(
+                                text = "|",
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = primaryAccentColor.copy(alpha = cursorAlpha)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(6.dp))
+
+                        // Animated Waving Hand Emoji 👋
+                        Text(
+                            text = "👋",
+                            fontSize = 22.sp,
+                            modifier = Modifier.graphicsLayer(
+                                rotationZ = waveAngle,
+                                transformOrigin = TransformOrigin(0.7f, 0.7f)
+                            )
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(top = 2.dp)
-                    )
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = Color(0xFF10B981).copy(alpha = 0.2f),
+                            modifier = Modifier.size(8.dp)
+                        ) {}
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Welcome to ElectroKit Offline Toolkit",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
                 }
 
-                // Pulsing + Glowing Processor Icon (always visible, no rotation)
+                // Pulsing + Glowing Processor Icon
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.size(52.dp)
@@ -187,13 +428,13 @@ fun HomeScreen(
                         modifier = Modifier
                             .graphicsLayer(scaleX = scale, scaleY = scale)
                             .size(42.dp)
-                            .border(BorderStroke(1.dp, Color(0xFF2563EB).copy(alpha = 0.2f)), RoundedCornerShape(14.dp))
+                            .border(BorderStroke(1.dp, primaryAccentColor.copy(alpha = 0.2f)), RoundedCornerShape(14.dp))
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Default.Memory,
                                 contentDescription = "ElectroKit Logo",
-                                tint = Color(0xFF2563EB),
+                                tint = primaryAccentColor,
                                 modifier = Modifier.size(22.dp)
                             )
                         }
@@ -221,49 +462,57 @@ fun HomeScreen(
                             addRoundRect(
                                 androidx.compose.ui.geometry.RoundRect(
                                     rect = androidx.compose.ui.geometry.Rect(0f, 0f, size.width, size.height),
-                                    cornerRadius = CornerRadius(28.dp.toPx(), 28.dp.toPx())
+                                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(28.dp.toPx(), 28.dp.toPx())
                                 )
                             )
                         }
+
                         val pathMeasure = androidx.compose.ui.graphics.PathMeasure()
                         pathMeasure.setPath(path, false)
-                        val totalLen = pathMeasure.length
+                        val totalLength = pathMeasure.length
+
+                        val segmentLength = 70.dp.toPx()
+                        val startDistance = searchProgress * totalLength
+                        val endDistance = (startDistance + segmentLength) % totalLength
+
                         val segmentPath = androidx.compose.ui.graphics.Path()
-
-                        val startDist = searchProgress * totalLen
-                        val pulseLen = 120.dp.toPx() // Length of traveling cyan light segment
-
-                        if (startDist + pulseLen <= totalLen) {
-                            pathMeasure.getSegment(startDist, startDist + pulseLen, segmentPath, true)
+                        if (endDistance > startDistance) {
+                            pathMeasure.getSegment(startDistance, endDistance, segmentPath, true)
                         } else {
-                            pathMeasure.getSegment(startDist, totalLen, segmentPath, true)
-                            pathMeasure.getSegment(0f, (startDist + pulseLen) % totalLen, segmentPath, true)
+                            pathMeasure.getSegment(startDistance, totalLength, segmentPath, true)
+                            pathMeasure.getSegment(0f, endDistance, segmentPath, true)
                         }
 
                         drawPath(
                             path = segmentPath,
-                            color = Color(0xFF00E5FF),
-                            style = Stroke(width = 2.2.dp.toPx())
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xFF00E5FF).copy(alpha = 0.05f),
+                                    Color(0xFF00E5FF).copy(alpha = 0.85f),
+                                    primaryAccentColor.copy(alpha = 0.9f),
+                                    primaryAccentColor.copy(alpha = 0.05f)
+                                )
+                            ),
+                            style = Stroke(width = 2.dp.toPx())
                         )
                     }
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f), RoundedCornerShape(28.dp))
             ) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     placeholder = { Text("Search any tool, calculator or component...", fontSize = 13.sp) },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search Icon", tint = Color(0xFF2563EB)) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search Icon", tint = primaryAccentColor) },
                     trailingIcon = {
                         if (searchQuery.isNotBlank()) {
                             IconButton(onClick = { searchQuery = "" }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Clear search", tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                                Icon(Icons.Default.Clear, contentDescription = "Clear Search", tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                             }
                         } else {
                             IconButton(onClick = { performSearch() }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                     contentDescription = "Perform Search",
-                                    tint = Color(0xFF2563EB)
+                                    tint = primaryAccentColor
                                 )
                             }
                         }
@@ -272,12 +521,14 @@ fun HomeScreen(
                     keyboardActions = KeyboardActions(onSearch = { performSearch() }),
                     shape = RoundedCornerShape(28.dp),
                     colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.65f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.65f),
                         focusedBorderColor = Color.Transparent,
                         unfocusedBorderColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
                         focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
                     ),
                     modifier = Modifier.fillMaxSize(),
                     singleLine = true
@@ -286,72 +537,63 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Horizontal Category Filter Chips with smooth selection animations
+            // Category Filter Chips
             LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = 14.dp)
             ) {
                 items(categoryChips) { chip ->
                     val isSelected = selectedCategoryChip == chip
                     val bgCol by animateColorAsState(
-                        targetValue = if (isSelected) Color(0xFF2563EB) else MaterialTheme.colorScheme.surface,
+                        targetValue = if (isSelected) primaryAccentColor else MaterialTheme.colorScheme.surface,
                         label = "chip_bg"
                     )
                     val txtCol by animateColorAsState(
-                        targetValue = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                        targetValue = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
                         label = "chip_txt"
                     )
 
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(1.dp, if (isSelected) Color.Transparent else MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
-                        color = bgCol,
-                        tonalElevation = if (isSelected) 4.dp else 0.dp,
-                        modifier = Modifier
-                            .clickable { selectedCategoryChip = chip }
-                    ) {
-                        Text(
-                            text = chip,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium, // Inter Medium
-                            color = txtCol,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { selectedCategoryChip = chip },
+                        label = {
+                            Text(
+                                text = chip,
+                                color = txtCol,
+                                fontSize = 12.sp,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = bgCol,
+                            selectedContainerColor = bgCol
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
+                            borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
+                            selectedBorderColor = primaryAccentColor
                         )
-                    }
+                    )
                 }
             }
 
-            // Grid Layout with redesigned Feature Cards
-            if (filteredTools.isEmpty()) {
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No tools found matching '$searchQuery'",
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        fontSize = 14.sp
+            // Tools Grid: 2-Column responsive grid
+            LazyVerticalGrid(
+                state = gridState,
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                items(filteredTools, key = { it.title }) { tool ->
+                    ToolGridCard(
+                        tool = tool,
+                        isScrolling = isScrolling,
+                        onClick = { onNavigateTo(tool.route) }
                     )
-                }
-            } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    state = gridState,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    items(filteredTools) { tool ->
-                        ToolCardItem(
-                            title = tool.title,
-                            description = tool.description,
-                            icon = tool.icon,
-                            isScrolling = isScrolling,
-                            onClick = { onNavigateTo(tool.route) }
-                        )
-                    }
                 }
             }
         }
@@ -359,76 +601,62 @@ fun HomeScreen(
 }
 
 @Composable
-fun ToolCardItem(
-    title: String,
-    description: String,
-    icon: ImageVector,
+fun ToolGridCard(
+    tool: ToolItem,
     isScrolling: Boolean,
     onClick: () -> Unit
 ) {
     val view = LocalView.current
     var isPressed by remember { mutableStateOf(false) }
+    val primaryAccent = MaterialTheme.colorScheme.primary
+    val surfaceColor = MaterialTheme.colorScheme.surface
 
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
+        targetValue = if (isPressed) 0.95f else 1f,
         animationSpec = tween(durationMillis = 80, easing = LinearOutSlowInEasing),
         label = "card_scale"
     )
 
-    // Shimmer sweep reflection plays slowly once every 12 seconds
-    val shimmerTransition = rememberInfiniteTransition(label = "card_shimmer")
-    val shimmerOffset by shimmerTransition.animateFloat(
-        initialValue = -0.5f,
-        targetValue = 1.5f,
+    // Floating Icon Y translation animation
+    val infiniteTransition = rememberInfiniteTransition(label = "float_${tool.title}")
+    val floatY by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = if (isScrolling) 0f else -4f,
         animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 12000
-                -0.5f at 0
-                -0.5f at 8000
-                1.5f at 10500
-                1.5f at 12000
-            },
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "shimmer_offset"
-    )
-
-    // Gentle 1-2px floating motion for icons every 4.5 seconds
-    val floatTransition = rememberInfiniteTransition(label = "icon_float")
-    val floatY by floatTransition.animateFloat(
-        initialValue = -1.5f,
-        targetValue = 1.5f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2250, easing = FastOutSlowInEasing),
+            animation = tween(durationMillis = 1600, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
-        label = "icon_y"
+        label = "float_y"
     )
 
-    val activeShimmerOffset = if (isScrolling) -0.5f else shimmerOffset
-
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val cardBrush = remember(activeShimmerOffset, surfaceColor) {
-        Brush.linearGradient(
-            colors = listOf(
-                surfaceColor,
-                surfaceColor,
-                Color(0xFF00E5FF).copy(alpha = 0.08f),
-                surfaceColor,
-                surfaceColor
-            ),
-            start = Offset(activeShimmerOffset * 400f, 0f),
-            end = Offset((activeShimmerOffset + 0.4f) * 400f, 400f)
-        )
-    }
+    // Continuous glassmorphic shimmer gradient sweep across the card surface
+    val shimmerShift by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 700f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3800, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "card_shimmer"
+    )
 
     Card(
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(24.dp), ambientColor = Color.LightGray.copy(alpha = 0.15f), spotColor = Color.LightGray.copy(alpha = 0.15f))
+            .height(148.dp)
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(22.dp),
+                ambientColor = primaryAccent.copy(alpha = 0.20f),
+                spotColor = primaryAccent.copy(alpha = 0.25f)
+            )
             .graphicsLayer(scaleX = scale, scaleY = scale)
+            .border(
+                BorderStroke(1.dp, primaryAccent.copy(alpha = 0.22f)),
+                RoundedCornerShape(22.dp)
+            )
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {
@@ -441,39 +669,114 @@ fun ToolCardItem(
                 )
             }
     ) {
-        Column(
+        Box(
             modifier = Modifier
-                .background(cardBrush)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.Start
+                .fillMaxSize()
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            surfaceColor,
+                            primaryAccent.copy(alpha = 0.14f),
+                            surfaceColor,
+                            primaryAccent.copy(alpha = 0.08f)
+                        ),
+                        start = Offset(shimmerShift - 350f, shimmerShift - 350f),
+                        end = Offset(shimmerShift, shimmerShift)
+                    )
+                )
+                .padding(14.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .graphicsLayer(translationY = floatY)
-                    .size(46.dp)
-                    .background(Color(0xFF2563EB).copy(alpha = 0.08f), CircleShape),
-                contentAlignment = Alignment.Center
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
+                // Floating Action Icon with glowing background aura
+                Box(
+                    modifier = Modifier
+                        .graphicsLayer(translationY = floatY)
+                        .size(46.dp)
+                        .background(primaryAccent.copy(alpha = 0.12f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = tool.icon,
+                        contentDescription = tool.title,
+                        tint = primaryAccent,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                // Text Content
+                Column {
+                    Text(
+                        text = tool.title,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = tool.description,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        lineHeight = 15.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.70f),
+                        maxLines = 2,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun WhatsNewFeatureItem(
+    icon: ImageVector,
+    title: String,
+    description: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .border(
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+            modifier = Modifier.size(32.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = icon,
                     contentDescription = title,
-                    tint = Color(0xFF2563EB),
-                    modifier = Modifier.size(24.dp)
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(14.dp))
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium, // Poppins Medium
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = description,
                 fontSize = 11.sp,
-                lineHeight = 15.sp,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 1.dp)
             )
         }
     }

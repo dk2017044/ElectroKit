@@ -84,7 +84,7 @@ fun FavoritesScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            PcbBackground(color = Color(0xFF2563EB))
+            PcbBackground(color = MaterialTheme.colorScheme.primary)
 
             LazyColumn(
                 modifier = Modifier
@@ -99,7 +99,7 @@ fun FavoritesScreen(
                         text = "Quick Access Tools",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFF2563EB),
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
                 }
@@ -123,19 +123,16 @@ fun FavoritesScreen(
                         text = "Favorite Components",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFF2563EB),
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                     )
                 }
 
                 if (favoriteComponents.isEmpty()) {
                     item {
-                        Card(
-                            shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .shadow(2.dp, RoundedCornerShape(20.dp), ambientColor = Color.LightGray.copy(alpha = 0.15f), spotColor = Color.LightGray.copy(alpha = 0.15f))
+                        com.example.electrokit.ui.components.ElectroKitCard(
+                            cornerRadius = 20.dp,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(
                                 modifier = Modifier
@@ -206,11 +203,9 @@ fun ToolGridItem(
         label = "icon_y"
     )
 
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    com.example.electrokit.ui.components.ElectroKitCard(
+        cornerRadius = 20.dp,
         modifier = modifier
-            .shadow(2.dp, RoundedCornerShape(20.dp), ambientColor = Color.LightGray.copy(alpha = 0.15f), spotColor = Color.LightGray.copy(alpha = 0.15f))
             .graphicsLayer(scaleX = scale, scaleY = scale)
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -229,13 +224,13 @@ fun ToolGridItem(
                 modifier = Modifier
                     .graphicsLayer(translationY = floatY)
                     .size(40.dp)
-                    .background(Color(0xFF2563EB).copy(alpha = 0.08f), CircleShape),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = item.icon,
                     contentDescription = item.title,
-                    tint = Color(0xFF2563EB),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(22.dp)
                 )
             }

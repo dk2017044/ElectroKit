@@ -1,5 +1,6 @@
 package com.example.electrokit.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +23,8 @@ import com.example.electrokit.ui.components.electroKitTextFieldColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OhmsLawScreen(onBack: () -> Unit) {
+    BackHandler { onBack() }
+
     var targetParameter by remember { mutableStateOf("Resistance (R)") }
     var vInput by remember { mutableStateOf("") }
     var iInput by remember { mutableStateOf("") }
@@ -87,7 +90,7 @@ fun OhmsLawScreen(onBack: () -> Unit) {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            PcbBackground(color = Color(0xFF2563EB))
+            PcbBackground(color = MaterialTheme.colorScheme.primary)
 
             Column(
                 modifier = Modifier
@@ -99,7 +102,7 @@ fun OhmsLawScreen(onBack: () -> Unit) {
                     text = "Select Parameter to Calculate:",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -164,23 +167,16 @@ fun OhmsLawScreen(onBack: () -> Unit) {
                 )
 
                 // ── Result Card ────────────────────────────────────────────────────
-                Card(
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(
-                            2.dp, RoundedCornerShape(20.dp),
-                            ambientColor = Color.LightGray.copy(alpha = 0.15f),
-                            spotColor = Color.LightGray.copy(alpha = 0.15f)
-                        )
+                com.example.electrokit.ui.components.ElectroKitCard(
+                    cornerRadius = 20.dp,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = "Calculation Result",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFF2563EB)
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(

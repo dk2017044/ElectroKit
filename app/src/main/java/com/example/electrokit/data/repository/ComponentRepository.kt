@@ -18,9 +18,10 @@ class ComponentRepository(context: Context) {
         withContext(Dispatchers.IO) {
             try {
                 val count = dbHelper.getCount()
-                if (count == 0) {
-                    val jsonString = applicationContext.assets.open("components.json").bufferedReader().use { it.readText() }
-                    val jsonArray = JSONArray(jsonString)
+                val jsonString = applicationContext.assets.open("components.json").bufferedReader().use { it.readText() }
+                val jsonArray = JSONArray(jsonString)
+
+                if (count == 0 || count < jsonArray.length()) {
                     val entityList = mutableListOf<ComponentEntity>()
 
                     for (i in 0 until jsonArray.length()) {

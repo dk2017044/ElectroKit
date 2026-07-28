@@ -15,6 +15,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import androidx.core.app.NotificationCompat
+import androidx.core.content.FileProvider
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -41,6 +42,8 @@ object UpdateManager {
     private const val GITHUB_RELEASE_API = "https://api.github.com/repos/dk2017044/ElectroKit/releases/latest"
     private const val GITHUB_ALL_RELEASES_API = "https://api.github.com/repos/dk2017044/ElectroKit/releases"
     private const val CHANNEL_ID = "electrokit_updates_channel"
+
+    private var pendingInstallUri: Uri? = null
 
     fun checkForUpdates(context: Context, onResult: (Result<UpdateInfo>) -> Unit) {
         executor.execute {
@@ -208,12 +211,16 @@ object UpdateManager {
         onState: (String) -> Unit
     ): Long {
         try {
+            // Clean up any old leftover APKs from private storage first
+            cleanUpLeftoverApks(context)
+
             val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             val request = DownloadManager.Request(Uri.parse(downloadUrl)).apply {
                 setTitle("ElectroKit Update")
                 setDescription("Downloading ElectroKit $latestVersion")
                 setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 setMimeType("application/vnd.android.package-archive")
+                // Store in app-private external files directory (NOT public Downloads folder)
                 setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, "ElectroKit_Update.apk")
             }
 
@@ -282,7 +289,7 @@ object UpdateManager {
                                                 val calculatedHash = calculateSHA256(apkFile)
                                                 if (calculatedHash.equals(expectedHash, ignoreCase = true)) {
                                                     mainHandler.post {
-                                                        onState("Security Check Passed! Installing update...")
+                                                        onState("Security Check Passed! Redirecting to System Installer...")
                                                         installApk(c, installUri)
                                                     }
                                                 } else {
@@ -292,7 +299,7 @@ object UpdateManager {
                                                 }
                                             } else {
                                                 mainHandler.post {
-                                                    onState("Download complete. Installing update...")
+                                                    onState("Download complete. Redirecting to System Installer...")
                                                     installApk(c, installUri)
                                                 }
                                             }
@@ -310,7 +317,11 @@ object UpdateManager {
                             }
                         }
                         cursor.close()
-                        c.unregisterReceiver(this)
+                        try {
+                            c.unregisterReceiver(this)
+                        } catch (e: Exception) {
+                            // Ignored
+                        }
                     }
                 }
             }
@@ -329,8 +340,10 @@ object UpdateManager {
 
     fun installApk(context: Context, fileUri: Uri) {
         try {
+            // Check Unknown App Install permission on Android 8.0+ (Oreo to Android 15)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (!context.packageManager.canRequestPackageInstalls()) {
+                    pendingInstallUri = fileUri
                     val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
                         data = Uri.parse("package:${context.packageName}")
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -340,9 +353,11 @@ object UpdateManager {
                 }
             }
 
+            pendingInstallUri = null
+
             val contentUri = if (fileUri.scheme == "file") {
                 val file = File(fileUri.path ?: "")
-                androidx.core.content.FileProvider.getUriForFile(
+                FileProvider.getUriForFile(
                     context,
                     "${context.packageName}.fileprovider",
                     file
@@ -362,14 +377,30 @@ object UpdateManager {
         }
     }
 
+    fun onResumeCheckPendingInstall(context: Context) {
+        val uri = pendingInstallUri
+        if (uri != null) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || context.packageManager.canRequestPackageInstalls()) {
+                installApk(context, uri)
+            }
+        }
+    }
+
     fun cleanUpLeftoverApks(context: Context) {
         executor.execute {
             try {
-                val downloadDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                if (downloadDir != null && downloadDir.exists() && downloadDir.isDirectory) {
-                    downloadDir.listFiles()?.forEach { file ->
-                        if (file.isFile && file.name.endsWith(".apk")) {
-                            file.delete()
+                val dirsToClean = listOfNotNull(
+                    context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
+                    context.externalCacheDir,
+                    context.cacheDir
+                )
+
+                dirsToClean.forEach { dir ->
+                    if (dir.exists() && dir.isDirectory) {
+                        dir.listFiles()?.forEach { file ->
+                            if (file.isFile && file.name.endsWith(".apk")) {
+                                file.delete()
+                            }
                         }
                     }
                 }
@@ -407,7 +438,7 @@ object UpdateManager {
         )
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.stat_sys_download_done) // system alert icon style
+            .setSmallIcon(android.R.drawable.stat_sys_download_done)
             .setContentTitle("New ElectroKit Update Available! 🚀")
             .setContentText("Version $latestVersion is now ready. Tap to view changes.")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

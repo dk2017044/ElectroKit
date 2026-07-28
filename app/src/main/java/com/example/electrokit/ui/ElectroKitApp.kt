@@ -47,6 +47,9 @@ fun ElectroKitApp() {
     val themePrefs = remember(context) { context.getSharedPreferences("electrokit_theme_prefs", Context.MODE_PRIVATE) }
     val appPrefs = remember(context) { context.getSharedPreferences("electrokit_app_prefs", Context.MODE_PRIVATE) }
     var isDarkTheme by remember { mutableStateOf(themePrefs.getBoolean("is_dark_theme", true)) }
+    var selectedAccentColorName by remember { mutableStateOf(themePrefs.getString("accent_color", "Blue") ?: "Blue") }
+    val accentColor = remember(selectedAccentColorName) { com.example.electrokit.ui.theme.getAccentColorByName(selectedAccentColorName) }
+
     var currentScreen by remember { mutableStateOf("splash") }
     var selectedComponent by remember { mutableStateOf<ComponentEntity?>(null) }
     var selectedBottomNavIndex by remember { mutableStateOf(0) }
@@ -92,7 +95,7 @@ fun ElectroKitApp() {
         mutableStateOf(isFirstLaunchAfterUpdate)
     }
 
-    ElectroKitTheme(darkTheme = isDarkTheme) {
+    ElectroKitTheme(darkTheme = isDarkTheme, accentColor = accentColor) {
         if (showWhatsNewDialog) {
             AlertDialog(
                 onDismissRequest = { showWhatsNewDialog = false },
@@ -101,7 +104,7 @@ fun ElectroKitApp() {
                         text = "Welcome to ElectroKit v${DeviceInfoHelper.getAppVersion(context)}! 🎉",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
-                        color = Color(0xFF2563EB)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 },
                 text = {
@@ -128,7 +131,7 @@ fun ElectroKitApp() {
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                Text("•", fontWeight = FontWeight.Bold, color = Color(0xFF2563EB))
+                                Text("•", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                                 Text(
                                     text = point,
                                     fontSize = 12.sp,
@@ -141,7 +144,7 @@ fun ElectroKitApp() {
                 confirmButton = {
                     Button(
                         onClick = { showWhatsNewDialog = false },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Text("Got it!", color = Color.White)
                     }
@@ -157,25 +160,27 @@ fun ElectroKitApp() {
         ) {
             when (currentScreen) {
                 "splash" -> {
-                    // Prevent accidental back exit during 2s splash animation
-                    BackHandler(enabled = true) { }
                     com.example.electrokit.ui.screens.splash.SplashScreen()
+                }
+
+                "component_detail" -> {
+                    val comp = selectedComponent
+                    if (comp != null) {
+                        ComponentDetailScreen(
+                            component = comp,
+                            onBack = { currentScreen = "main" }
+                        )
+                    } else {
+                        currentScreen = "main"
+                    }
                 }
 
                 "ohms_law" -> {
                     OhmsLawScreen(onBack = { currentScreen = "main" })
                 }
 
-                "led_resistor" -> {
-                    LedResistorScreen(onBack = { currentScreen = "main" })
-                }
-
                 "resistor_color" -> {
                     ResistorColorScreen(onBack = { currentScreen = "main" })
-                }
-
-                "smd_code" -> {
-                    SmdCodeScreen(onBack = { currentScreen = "main" })
                 }
 
                 "series_parallel" -> {
@@ -186,24 +191,15 @@ fun ElectroKitApp() {
                     NumberConverterScreen(onBack = { currentScreen = "main" })
                 }
 
-                "component_detail" -> {
-                    BackHandler { currentScreen = "main" }
-                    selectedComponent?.let { comp ->
-                        ComponentDetailScreen(
-                            component = comp,
-                            onBack = { currentScreen = "main" }
-                        )
-                    } ?: run {
-                        currentScreen = "main"
-                    }
+                "led_resistor" -> {
+                    LedResistorScreen(onBack = { currentScreen = "main" })
                 }
 
                 "main" -> {
-                    // Unified back handler for main screen navigation and exit confirmation
-                    BackHandler(enabled = true) {
-                        if (selectedBottomNavIndex == 1 && sharedSearchQuery.isNotBlank()) {
-                            sharedSearchQuery = ""
-                        } else if (selectedBottomNavIndex != 0) {
+                    // Double press back to exit application handler
+                    val currentView = LocalView.current
+                    BackHandler {
+                        if (selectedBottomNavIndex != 0) {
                             selectedBottomNavIndex = 0
                         } else {
                             val currentTime = System.currentTimeMillis()
@@ -211,6 +207,9 @@ fun ElectroKitApp() {
                                 (context as? android.app.Activity)?.finish()
                             } else {
                                 lastBackPressTime = currentTime
+                                try {
+                                    currentView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                                } catch (e: Exception) {}
                                 Toast.makeText(context, "Press back again to exit", Toast.LENGTH_SHORT).show()
                             }
                         }
@@ -218,111 +217,105 @@ fun ElectroKitApp() {
 
                     Scaffold(
                         bottomBar = {
-                            // Custom iOS-Style Glassmorphic Floating Rounded Dock
-                            // windowInsetsPadding ensures dock clears system nav/gesture bar
+                            // Custom Sliding Bottom Dock Navigation Bar
+                            val primaryColor = MaterialTheme.colorScheme.primary
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .windowInsetsPadding(WindowInsets.navigationBars)
-                                    .background(Color.Transparent)
-                                    .padding(horizontal = 20.dp, vertical = 10.dp)
+                                    .navigationBarsPadding()
+                                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                                contentAlignment = Alignment.Center
                             ) {
                                 Surface(
-                                    shape = RoundedCornerShape(26.dp),
-                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
+                                    shape = RoundedCornerShape(28.dp),
+                                    color = MaterialTheme.colorScheme.surface,
+                                    tonalElevation = 6.dp,
+                                    shadowElevation = 8.dp,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(72.dp)
-                                        .shadow(16.dp, RoundedCornerShape(26.dp), ambientColor = Color.LightGray.copy(alpha = 0.3f), spotColor = Color.LightGray.copy(alpha = 0.3f))
+                                        .height(64.dp)
+                                        .border(
+                                            BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
+                                            RoundedCornerShape(28.dp)
+                                        )
                                 ) {
                                     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                                         val totalWidth = maxWidth
-                                        val tabWidth = totalWidth / 4
+                                        val itemWidth = totalWidth / 4
 
-                                        // Sliding active pill indicator background
-                                        val activePillXOffset by animateDpAsState(
-                                            targetValue = tabWidth * selectedBottomNavIndex + 8.dp,
-                                            animationSpec = spring(dampingRatio = 0.82f, stiffness = Spring.StiffnessLow),
-                                            label = "pill_slide"
+                                        // Sliding Active Indicator Pill with Accent Color
+                                        val pillOffset by animateDpAsState(
+                                            targetValue = itemWidth * selectedBottomNavIndex + (itemWidth - 44.dp) / 2,
+                                            animationSpec = spring(
+                                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                                stiffness = Spring.StiffnessMediumLow
+                                            ),
+                                            label = "dock_pill_slide"
                                         )
 
                                         Box(
-                                             modifier = Modifier
-                                                 .width(tabWidth - 16.dp)
-                                                 .height(38.dp)
-                                                 .align(Alignment.CenterStart)
-                                                 .offset(x = activePillXOffset)
-                                                 .background(
-                                                     color = if (selectedBottomNavIndex == 2) Color(0xFFEF4444).copy(alpha = 0.08f) else Color(0xFF2563EB).copy(alpha = 0.08f),
-                                                     shape = CircleShape
-                                                 )
-                                         )
+                                            modifier = Modifier
+                                                .fillMaxHeight()
+                                                .offset(x = pillOffset)
+                                                .width(44.dp)
+                                                .padding(vertical = 10.dp)
+                                                .background(
+                                                    color = primaryColor.copy(alpha = 0.15f),
+                                                    shape = RoundedCornerShape(18.dp)
+                                                )
+                                        )
 
-                                        // Tabs content Row
                                         Row(
                                             modifier = Modifier.fillMaxSize(),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.SpaceEvenly
+                                            horizontalArrangement = Arrangement.SpaceAround,
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             // Tab 0: Home
-                                            Box(
-                                                modifier = Modifier.weight(1f),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                HomeTabIcon(
-                                                    selected = selectedBottomNavIndex == 0,
-                                                    onClick = { selectedBottomNavIndex = 0 }
-                                                )
-                                            }
+                                            HomeTabIcon(
+                                                selected = selectedBottomNavIndex == 0,
+                                                onClick = { selectedBottomNavIndex = 0 }
+                                            )
 
-                                            // Tab 1: Components
-                                            Box(
-                                                modifier = Modifier.weight(1f),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                ComponentsTabIcon(
-                                                    selected = selectedBottomNavIndex == 1,
-                                                    onClick = { selectedBottomNavIndex = 1 }
-                                                )
-                                            }
+                                            // Tab 1: Components Library
+                                            ComponentsTabIcon(
+                                                selected = selectedBottomNavIndex == 1,
+                                                onClick = { selectedBottomNavIndex = 1 }
+                                            )
 
                                             // Tab 2: Favorites
-                                            Box(
-                                                modifier = Modifier.weight(1f),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                FavoritesTabIcon(
-                                                    selected = selectedBottomNavIndex == 2,
-                                                    onClick = { selectedBottomNavIndex = 2 }
-                                                )
-                                            }
+                                            FavoritesTabIcon(
+                                                selected = selectedBottomNavIndex == 2,
+                                                onClick = { selectedBottomNavIndex = 2 }
+                                            )
 
-                                            // Tab 3: Settings
-                                            Box(
-                                                modifier = Modifier.weight(1f),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                SettingsTabIcon(
-                                                    selected = selectedBottomNavIndex == 3,
-                                                    onClick = { selectedBottomNavIndex = 3 }
-                                                )
-                                            }
+                                            // Tab 3: Settings & About
+                                            SettingsTabIcon(
+                                                selected = selectedBottomNavIndex == 3,
+                                                onClick = { selectedBottomNavIndex = 3 }
+                                            )
                                         }
                                     }
                                 }
                             }
                         }
                     ) { innerPadding ->
-                        Box(modifier = Modifier.padding(innerPadding)) {
-                            // Premium screen transition using slide + fade animation
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding)
+                        ) {
                             AnimatedContent(
                                 targetState = selectedBottomNavIndex,
                                 transitionSpec = {
-                                    (fadeIn(animationSpec = tween(300)) + slideInHorizontally(animationSpec = tween(300), initialOffsetX = { if (targetState > initialState) it else -it }))
-                                        .togetherWith(fadeOut(animationSpec = tween(200)) + slideOutHorizontally(animationSpec = tween(200), targetOffsetX = { if (targetState > initialState) -it else it }))
+                                    if (targetState > initialState) {
+                                        slideInHorizontally { width -> width } + fadeIn() togetherWith
+                                                slideOutHorizontally { width -> -width } + fadeOut()
+                                    } else {
+                                        slideInHorizontally { width -> -width } + fadeIn() togetherWith
+                                                slideOutHorizontally { width -> width } + fadeOut()
+                                    }.using(SizeTransform(clip = false))
                                 },
-                                label = "screen_switch"
+                                label = "bottom_nav_transition"
                             ) { index ->
                                 when (index) {
                                     0 -> HomeScreen(
@@ -369,12 +362,17 @@ fun ElectroKitApp() {
                                         }
                                     )
 
-                                     3 -> SettingsScreen(
+                                    3 -> SettingsScreen(
                                         onBack = { selectedBottomNavIndex = 0 },
                                         isDarkTheme = isDarkTheme,
                                         onThemeToggle = { dark ->
                                             isDarkTheme = dark
                                             themePrefs.edit().putBoolean("is_dark_theme", dark).apply()
+                                        },
+                                        selectedAccentColor = selectedAccentColorName,
+                                        onAccentColorChange = { colorName ->
+                                            selectedAccentColorName = colorName
+                                            themePrefs.edit().putString("accent_color", colorName).apply()
                                         }
                                     )
                                 }
@@ -394,6 +392,29 @@ fun HomeTabIcon(selected: Boolean, onClick: () -> Unit) {
     val scale = remember { Animatable(1f) }
     val rippleProgress = remember { Animatable(0f) }
     val rippleAlpha = remember { Animatable(0f) }
+    val primaryColor = MaterialTheme.colorScheme.primary
+
+    fun triggerAnimation() {
+        scope.launch {
+            launch {
+                scale.snapTo(1f)
+                scale.animateTo(1.2f, animationSpec = tween(120, easing = FastOutSlowInEasing))
+                scale.animateTo(1.0f, animationSpec = tween(150, easing = FastOutSlowInEasing))
+            }
+            launch {
+                rippleProgress.snapTo(0f)
+                rippleAlpha.snapTo(0.8f)
+                rippleProgress.animateTo(1f, animationSpec = tween(350, easing = LinearOutSlowInEasing))
+                rippleAlpha.animateTo(0f, animationSpec = tween(150, easing = FastOutSlowInEasing))
+            }
+        }
+    }
+
+    LaunchedEffect(selected) {
+        if (selected) {
+            triggerAnimation()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -403,26 +424,15 @@ fun HomeTabIcon(selected: Boolean, onClick: () -> Unit) {
                 indication = null
             ) {
                 view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                triggerAnimation()
                 onClick()
-                scope.launch {
-                    launch {
-                        scale.animateTo(1.2f, animationSpec = tween(120, easing = FastOutSlowInEasing))
-                        scale.animateTo(1.0f, animationSpec = tween(150, easing = FastOutSlowInEasing))
-                    }
-                    launch {
-                        rippleProgress.snapTo(0f)
-                        rippleAlpha.snapTo(0.8f)
-                        rippleProgress.animateTo(1f, animationSpec = tween(350, easing = LinearOutSlowInEasing))
-                        rippleAlpha.animateTo(0f, animationSpec = tween(150, easing = FastOutSlowInEasing))
-                    }
-                }
             },
         contentAlignment = Alignment.Center
     ) {
         if (rippleAlpha.value > 0f) {
             Canvas(modifier = Modifier.size(54.dp)) {
                 drawCircle(
-                    color = Color(0xFF2563EB).copy(alpha = rippleAlpha.value),
+                    color = primaryColor.copy(alpha = rippleAlpha.value),
                     radius = (size.width / 2f) * rippleProgress.value
                 )
             }
@@ -430,7 +440,7 @@ fun HomeTabIcon(selected: Boolean, onClick: () -> Unit) {
         Icon(
             imageVector = Icons.Default.Home,
             contentDescription = "Home",
-            tint = if (selected) Color(0xFF2563EB) else Color(0xFF9CA3AF),
+            tint = if (selected) primaryColor else Color(0xFF9CA3AF),
             modifier = Modifier
                 .scale(scale.value)
                 .size(24.dp)
@@ -443,6 +453,20 @@ fun ComponentsTabIcon(selected: Boolean, onClick: () -> Unit) {
     val view = LocalView.current
     val scope = rememberCoroutineScope()
     val assemblyProgress = remember { Animatable(0f) }
+    val primaryColor = MaterialTheme.colorScheme.primary
+
+    fun triggerAnimation() {
+        scope.launch {
+            assemblyProgress.snapTo(0f)
+            assemblyProgress.animateTo(1f, animationSpec = tween(400, easing = FastOutSlowInEasing))
+        }
+    }
+
+    LaunchedEffect(selected) {
+        if (selected) {
+            triggerAnimation()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -452,11 +476,8 @@ fun ComponentsTabIcon(selected: Boolean, onClick: () -> Unit) {
                 indication = null
             ) {
                 view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                triggerAnimation()
                 onClick()
-                scope.launch {
-                    assemblyProgress.snapTo(0f)
-                    assemblyProgress.animateTo(1f, animationSpec = tween(400, easing = FastOutSlowInEasing))
-                }
             },
         contentAlignment = Alignment.Center
     ) {
@@ -479,16 +500,16 @@ fun ComponentsTabIcon(selected: Boolean, onClick: () -> Unit) {
                 drawCircle(color = Color(0xFF00E5FF), radius = 3.dp.toPx(), center = node4)
 
                 // Dynamic PCB traces forming circuit block
-                drawLine(color = Color(0xFF2563EB).copy(alpha = progress), start = node1, end = node2, strokeWidth = 1.2.dp.toPx())
-                drawLine(color = Color(0xFF2563EB).copy(alpha = progress), start = node2, end = node4, strokeWidth = 1.2.dp.toPx())
-                drawLine(color = Color(0xFF2563EB).copy(alpha = progress), start = node4, end = node3, strokeWidth = 1.2.dp.toPx())
-                drawLine(color = Color(0xFF2563EB).copy(alpha = progress), start = node3, end = node1, strokeWidth = 1.2.dp.toPx())
+                drawLine(color = primaryColor.copy(alpha = progress), start = node1, end = node2, strokeWidth = 1.2.dp.toPx())
+                drawLine(color = primaryColor.copy(alpha = progress), start = node2, end = node4, strokeWidth = 1.2.dp.toPx())
+                drawLine(color = primaryColor.copy(alpha = progress), start = node4, end = node3, strokeWidth = 1.2.dp.toPx())
+                drawLine(color = primaryColor.copy(alpha = progress), start = node3, end = node1, strokeWidth = 1.2.dp.toPx())
             }
         }
         Icon(
             imageVector = Icons.Default.DeveloperBoard,
             contentDescription = "Components",
-            tint = if (selected) Color(0xFF2563EB) else Color(0xFF9CA3AF),
+            tint = if (selected) primaryColor else Color(0xFF9CA3AF),
             modifier = Modifier.size(24.dp)
         )
     }
@@ -502,6 +523,30 @@ fun FavoritesTabIcon(selected: Boolean, onClick: () -> Unit) {
     val rippleProgress = remember { Animatable(0f) }
     val rippleAlpha = remember { Animatable(0f) }
 
+    fun triggerAnimation() {
+        scope.launch {
+            launch {
+                scale.snapTo(1f)
+                scale.animateTo(1.3f, animationSpec = tween(120, easing = FastOutSlowInEasing))
+                scale.animateTo(0.95f, animationSpec = tween(100, easing = FastOutSlowInEasing))
+                scale.animateTo(1.1f, animationSpec = tween(80, easing = FastOutSlowInEasing))
+                scale.animateTo(1.0f, animationSpec = tween(100, easing = FastOutSlowInEasing))
+            }
+            launch {
+                rippleProgress.snapTo(0f)
+                rippleAlpha.snapTo(0.7f)
+                rippleProgress.animateTo(1.2f, animationSpec = tween(350, easing = LinearOutSlowInEasing))
+                rippleAlpha.animateTo(0f, animationSpec = tween(150, easing = FastOutSlowInEasing))
+            }
+        }
+    }
+
+    LaunchedEffect(selected) {
+        if (selected) {
+            triggerAnimation()
+        }
+    }
+
     Box(
         modifier = Modifier
             .size(44.dp)
@@ -510,21 +555,8 @@ fun FavoritesTabIcon(selected: Boolean, onClick: () -> Unit) {
                 indication = null
             ) {
                 view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                triggerAnimation()
                 onClick()
-                scope.launch {
-                    launch {
-                        scale.animateTo(1.3f, animationSpec = tween(120, easing = FastOutSlowInEasing))
-                        scale.animateTo(0.95f, animationSpec = tween(100, easing = FastOutSlowInEasing))
-                        scale.animateTo(1.1f, animationSpec = tween(80, easing = FastOutSlowInEasing))
-                        scale.animateTo(1.0f, animationSpec = tween(100, easing = FastOutSlowInEasing))
-                    }
-                    launch {
-                        rippleProgress.snapTo(0f)
-                        rippleAlpha.snapTo(0.7f)
-                        rippleProgress.animateTo(1.2f, animationSpec = tween(350, easing = LinearOutSlowInEasing))
-                        rippleAlpha.animateTo(0f, animationSpec = tween(150, easing = FastOutSlowInEasing))
-                    }
-                }
             },
         contentAlignment = Alignment.Center
     ) {
@@ -554,6 +586,26 @@ fun SettingsTabIcon(selected: Boolean, onClick: () -> Unit) {
     val rotation = remember { Animatable(0f) }
     val glowAlpha = remember { Animatable(0f) }
 
+    fun triggerAnimation() {
+        scope.launch {
+            launch {
+                rotation.snapTo(0f)
+                rotation.animateTo(180f, animationSpec = tween(400, easing = FastOutSlowInEasing))
+            }
+            launch {
+                glowAlpha.snapTo(0f)
+                glowAlpha.animateTo(0.4f, animationSpec = tween(150, easing = FastOutSlowInEasing))
+                glowAlpha.animateTo(0f, animationSpec = tween(250, easing = FastOutSlowInEasing))
+            }
+        }
+    }
+
+    LaunchedEffect(selected) {
+        if (selected) {
+            triggerAnimation()
+        }
+    }
+
     Box(
         modifier = Modifier
             .size(44.dp)
@@ -562,18 +614,8 @@ fun SettingsTabIcon(selected: Boolean, onClick: () -> Unit) {
                 indication = null
             ) {
                 view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                triggerAnimation()
                 onClick()
-                scope.launch {
-                    launch {
-                        rotation.snapTo(0f)
-                        rotation.animateTo(180f, animationSpec = tween(400, easing = FastOutSlowInEasing))
-                    }
-                    launch {
-                        glowAlpha.snapTo(0f)
-                        glowAlpha.animateTo(0.4f, animationSpec = tween(150, easing = FastOutSlowInEasing))
-                        glowAlpha.animateTo(0f, animationSpec = tween(250, easing = FastOutSlowInEasing))
-                    }
-                }
             },
         contentAlignment = Alignment.Center
     ) {
@@ -588,7 +630,7 @@ fun SettingsTabIcon(selected: Boolean, onClick: () -> Unit) {
         Icon(
             imageVector = Icons.Default.Settings,
             contentDescription = "Settings",
-            tint = if (selected) Color(0xFF2563EB) else Color(0xFF9CA3AF),
+            tint = if (selected) MaterialTheme.colorScheme.primary else Color(0xFF9CA3AF),
             modifier = Modifier
                 .graphicsLayer(rotationZ = rotation.value)
                 .size(24.dp)
