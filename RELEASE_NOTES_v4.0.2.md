@@ -1,0 +1,8 @@
+- 🌟 **Non-Stop Glowing Glassmorphic Cards**: Continuous infinite accent shimmer gradient sweep across all cards across all 12 screens without turning dark or black.
+- ⚡ **12-Point Electric Sparks Splash Screen**: Integrated "E" & "K" circuit logo with radiating 8-directional electric sparks and orange lightning bolt energy pulses.
+- 👤 **Custom User Profile Greeting**: Time-aware greeting (`Good Morning / Afternoon / Evening, Dilip 👋`) with live typewriter animation and customizable user profile name in Settings.
+- 🔲 **Accent Highlight Input Fields & Search Bars**: Sleek glassmorphic borders on all textfields, search bars, unit dropdowns, and filter chips.
+- 📦 **Expanded Components DB Catalog**: Full datasheet catalog re-seeded containing 400+ electronics components & pinouts.
+- 🌊 **Subtle Ambient PCB Wave Background**: Soft 5-trace circuit board background with calm, gentle signal pulses.
+- 🔄 **In-App Auto Update Manager v4.0.2**: Fixed single-trigger startup dialog dismissal & smooth 1-click update.
+- 📱 **System Back Navigation Fix**: Preserved category view state when navigating back from component details.

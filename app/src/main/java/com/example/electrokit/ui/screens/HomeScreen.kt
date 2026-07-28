@@ -239,7 +239,7 @@ fun HomeScreen(
 
     val whatsNewPrefs = remember(context) { context.getSharedPreferences("electrokit_whats_new_prefs", Context.MODE_PRIVATE) }
     var showWhatsNewDialog by remember {
-        mutableStateOf(whatsNewPrefs.getString("last_seen_version", "") != "4.0.1")
+        mutableStateOf(whatsNewPrefs.getString("last_seen_version", "") != "4.0.2")
     }
 
     Box(
@@ -253,12 +253,12 @@ fun HomeScreen(
         if (showWhatsNewDialog) {
             AlertDialog(
                 onDismissRequest = {
-                    whatsNewPrefs.edit().putString("last_seen_version", "4.0.1").apply()
+                    whatsNewPrefs.edit().putString("last_seen_version", "4.0.2").commit()
                     showWhatsNewDialog = false
                 },
                 title = {
                     Text(
-                        text = "What's New in v4.0.1 🚀",
+                        text = "What's New in v4.0.2 🚀",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -313,7 +313,7 @@ fun HomeScreen(
                 confirmButton = {
                     Button(
                         onClick = {
-                            whatsNewPrefs.edit().putString("last_seen_version", "4.0.0").apply()
+                            whatsNewPrefs.edit().putString("last_seen_version", "4.0.2").commit()
                             showWhatsNewDialog = false
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),

@@ -20,8 +20,8 @@ android {
         applicationId = "com.example.electrokit"
         minSdk = 24
         targetSdk = 34
-        versionCode = 20
-        versionName = "4.0.1"
+        versionCode = 21
+        versionName = "4.0.2"
     }
 
     buildTypes {
