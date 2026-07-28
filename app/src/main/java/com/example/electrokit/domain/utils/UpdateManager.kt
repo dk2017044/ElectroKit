@@ -94,7 +94,7 @@ object UpdateManager {
                     val updateInfo = UpdateInfo(
                         latestVersion = tagName,
                         downloadUrl = downloadUrl,
-                        releaseNotes = body,
+                        releaseNotes = cleanReleaseNotes(body),
                         isNewer = isNewer
                     )
 
@@ -468,5 +468,17 @@ object UpdateManager {
         }
         val shaBytes = digest.digest()
         return shaBytes.joinToString("") { "%02x".format(it) }
+    }
+
+    private fun cleanReleaseNotes(rawBody: String): String {
+        if (rawBody.isBlank()) return "• New features, performance enhancements, and bug fixes."
+        var notes = rawBody
+        if (notes.contains("## Release Details")) {
+            notes = notes.substringAfter("---").trim()
+        }
+        if (notes.contains("## ✨ What's New")) {
+            notes = notes.substringAfter("## ✨ What's New").trim()
+        }
+        return notes.replace("#", "").trim()
     }
 }
